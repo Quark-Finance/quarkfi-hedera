@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
 import { formatAddress, formatUsd } from "@/lib/format";
-import { Wallet, LogOut, Zap } from "lucide-react";
+import { Wallet, LogOut } from "lucide-react";
 
 export function Navbar() {
   const { isConnected, address, balance, connect, disconnect } = useWallet();
@@ -17,8 +17,12 @@ export function Navbar() {
     <nav className="border-b border-border bg-[#080808] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              src="/logo/quark_logo_white.svg"
+              alt="Quark"
+              className="h-6 w-6"
+            />
             <span className="text-foreground font-semibold text-base tracking-[1px] uppercase">
               Quark
             </span>

@@ -3,11 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
 import { formatAddress, formatUsd } from "@/lib/format";
 import {
-  Zap,
   LayoutDashboard,
   Wallet,
   LogOut,
-  ArrowLeft,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -22,12 +20,16 @@ export function Sidebar() {
   return (
     <aside className="w-[240px] h-screen sticky top-0 flex flex-col border-r border-border bg-[#080808]">
       {/* Logo */}
-      <div className="px-5 h-14 flex items-center gap-2 border-b border-border">
-        <Zap className="h-4 w-4 text-primary" />
+      <Link to="/" className="px-5 h-14 flex items-center gap-3 border-b border-border">
+        <img
+          src="/logo/quark_logo_white.svg"
+          alt="Quark"
+          className="h-6 w-6"
+        />
         <span className="text-foreground font-semibold text-base tracking-[1px] uppercase">
           Quark
         </span>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
