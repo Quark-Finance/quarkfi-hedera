@@ -1,12 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWallet } from "@/hooks/useWallet";
-import {
-  MOCK_CONVERSATION,
-  MOCK_SUGGESTIONS,
-  type ChatMessage,
-} from "@/data/chat";
+import { MOCK_SUGGESTIONS, type ChatMessage } from "@/data/chat";
+import { sendMessage, getAgentStatus } from "@/lib/api";
 import {
   Send,
   Wallet,
@@ -16,6 +13,7 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
+  WifiOff,
 } from "lucide-react";
 
 function ToolCallBadge({ toolCall }: { toolCall: ChatMessage["toolCall"] }) {
@@ -71,9 +69,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             );
           })}
         </div>
-        {message.toolCall && (
-          <ToolCallBadge toolCall={message.toolCall} />
-        )}
+        {message.toolCall && <ToolCallBadge toolCall={message.toolCall} />}
         <p className="text-[9px] text-muted-foreground tracking-[0.5px] uppercase">
           {new Date(message.timestamp).toLocaleTimeString("en-US", {
             hour: "2-digit",
@@ -87,67 +83,142 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
 export function QuarkAI() {
   const { isConnected, connect } = useWallet();
-  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_CONVERSATION);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [agentOnline, setAgentOnline] = useState<boolean | null>(null);
+  const [toolCount, setToolCount] = useState(0);
+  const [threadId] = useState(() => `thread-${Date.now()}`);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  function handleSend(text?: string) {
-    const content = text ?? input.trim();
-    if (!content) return;
+  useEffect(() => {
+    getAgentStatus()
+      .then((status) => {
+        setAgentOnline(status.status === "online");
+        setToolCount(status.tools ?? 0);
+      })
+      .catch(() => setAgentOnline(false));
+  }, []);
 
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      role: "user",
-      content,
-      timestamp: new Date().toISOString(),
-    };
+  const handleSend = useCallback(
+    async (text?: string) => {
+      const content = text ?? input.trim();
+      if (!content || isTyping) return;
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setIsTyping(true);
-
-    // Mock agent response
-    setTimeout(() => {
-      const agentMsg: ChatMessage = {
-        id: `msg-${Date.now()}-agent`,
-        role: "agent",
-        content:
-          "I understand your request. This is a mocked response — the Hedera AI Agent Kit integration is coming soon. In production, I would process your request using the appropriate Hedera SDK tools.",
+      const userMsg: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        role: "user",
+        content,
         timestamp: new Date().toISOString(),
-        toolCall: {
-          name: "hedera_agent_process",
-          status: "success",
-          result: "mock response",
-        },
       };
-      setMessages((prev) => [...prev, agentMsg]);
-      setIsTyping(false);
-    }, 1500);
-  }
+
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setIsTyping(true);
+
+      try {
+        const result = await sendMessage(content, threadId);
+
+        const toolCall = result.toolCalls?.[0];
+        const agentMsg: ChatMessage = {
+          id: `msg-${Date.now()}-agent`,
+          role: "agent",
+          content: result.content,
+          timestamp: new Date().toISOString(),
+          toolCall: toolCall
+            ? {
+                name: toolCall.name,
+                status: result.error ? "error" : "success",
+                result: toolCall.humanMessage,
+              }
+            : undefined,
+        };
+
+        setMessages((prev) => [...prev, agentMsg]);
+      } catch {
+        const errorMsg: ChatMessage = {
+          id: `msg-${Date.now()}-error`,
+          role: "agent",
+          content:
+            "Failed to reach the Quark AI server. Make sure the server is running on port 3001.",
+          timestamp: new Date().toISOString(),
+          toolCall: {
+            name: "connection_error",
+            status: "error",
+            result: "server unreachable",
+          },
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      } finally {
+        setIsTyping(false);
+      }
+    },
+    [input, isTyping, threadId]
+  );
 
   if (!isConnected) {
     return (
-      <div className="flex-1 flex items-center justify-center px-8">
-        <div className="text-center">
-          <Wallet className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-[32px] font-bold font-display tracking-[-1px] text-foreground mb-2">
-            Connect Wallet
-          </h2>
-          <p className="text-[13px] text-muted-foreground mb-6 max-w-sm mx-auto uppercase tracking-[0.5px]">
-            Connect your wallet to interact with the Quark AI agent.
-          </p>
-          <Button
-            onClick={connect}
-            size="lg"
-            className="text-[11px] font-bold tracking-[0.5px] uppercase"
-          >
-            CONNECT WALLET
-          </Button>
+      <div className="flex flex-col h-screen">
+        {/* Header — same as connected state */}
+        <div className="border-b border-border px-8 py-4 shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold tracking-[0.5px] text-primary uppercase mb-1">
+                // QUARK AI AGENT
+              </p>
+              <h1 className="text-[18px] font-semibold font-display text-foreground">
+                Hedera AI Assistant
+              </h1>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 border border-border text-[9px] font-bold tracking-[0.5px] uppercase text-muted-foreground">
+              [LOCKED]
+            </span>
+          </div>
+        </div>
+
+        {/* Gate content */}
+        <div className="flex-1 flex items-center justify-center px-8">
+          <div className="w-full max-w-sm">
+            <div className="border border-border bg-card p-8 text-center">
+              <div className="w-12 h-12 flex items-center justify-center border border-border bg-secondary mx-auto mb-5">
+                <Wallet className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-[11px] font-bold tracking-[0.5px] text-primary uppercase mb-3">
+                // WALLET REQUIRED
+              </p>
+              <h2 className="text-[22px] font-bold font-display tracking-[-1px] text-foreground mb-2">
+                Connect to use Quark AI
+              </h2>
+              <p className="text-[13px] text-muted-foreground mb-6 tracking-[0.3px]">
+                Your wallet provides context for the agent to check balances, transfer tokens, and manage your positions.
+              </p>
+
+              {/* Capability hints */}
+              <div className="space-y-2 mb-6 text-left">
+                {[
+                  "Check HBAR balance & token holdings",
+                  "Transfer tokens & create assets",
+                  "Analyze vault performance",
+                ].map((cap) => (
+                  <div key={cap} className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-primary shrink-0" />
+                    <span className="text-[11px] text-muted-foreground tracking-[0.3px]">{cap}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={connect}
+                className="w-full text-[11px] font-bold tracking-[0.5px] uppercase"
+              >
+                CONNECT WALLET
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -166,11 +237,28 @@ export function QuarkAI() {
               Hedera AI Assistant
             </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 border border-primary/40 bg-primary/10 text-[9px] font-bold tracking-[0.5px] uppercase text-primary">
-              <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
-              [ONLINE]
-            </span>
+          <div className="flex items-center gap-3">
+            {toolCount > 0 && (
+              <span className="text-[9px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                {toolCount} TOOLS
+              </span>
+            )}
+            {agentOnline === null ? (
+              <span className="inline-flex items-center gap-1.5 px-2 py-1 border border-border text-[9px] font-bold tracking-[0.5px] uppercase text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                [CONNECTING]
+              </span>
+            ) : agentOnline ? (
+              <span className="inline-flex items-center gap-1.5 px-2 py-1 border border-primary/40 bg-primary/10 text-[9px] font-bold tracking-[0.5px] uppercase text-primary">
+                <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
+                [ONLINE]
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2 py-1 border border-negative/40 bg-negative/10 text-[9px] font-bold tracking-[0.5px] uppercase text-negative">
+                <WifiOff className="h-3 w-3" />
+                [OFFLINE]
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -183,10 +271,15 @@ export function QuarkAI() {
             <h2 className="text-[18px] font-semibold font-display text-foreground mb-2">
               Quark AI Agent
             </h2>
-            <p className="text-[13px] text-muted-foreground max-w-md mb-6">
+            <p className="text-[13px] text-muted-foreground max-w-md mb-2">
               Interact with Hedera through natural language. Check balances,
               transfer tokens, create assets, and more.
             </p>
+            {!agentOnline && agentOnline !== null && (
+              <p className="text-[11px] text-warning tracking-[0.5px] uppercase mt-2">
+                // SERVER OFFLINE — START WITH: cd server && bun run dev
+              </p>
+            )}
           </div>
         )}
 
@@ -212,7 +305,7 @@ export function QuarkAI() {
       </div>
 
       {/* Suggestions */}
-      {messages.length <= 1 && (
+      {messages.length === 0 && (
         <div className="px-8 pb-3 shrink-0">
           <p className="text-[9px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-2">
             // SUGGESTED ACTIONS

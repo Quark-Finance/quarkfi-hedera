@@ -6,6 +6,7 @@ import { VaultDiscovery } from "@/pages/VaultDiscovery";
 import { VaultDetail } from "@/pages/VaultDetail";
 import { UserAssets } from "@/pages/UserAssets";
 import { QuarkAI } from "@/pages/QuarkAI";
+import { NotFound } from "@/pages/NotFound";
 
 export default function App() {
   return (
@@ -22,6 +23,9 @@ export default function App() {
         <Route path="/portfolio" element={<UserAssets />} />
         <Route path="/ai" element={<QuarkAI />} />
       </Route>
+
+      {/* 404 catch-all */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

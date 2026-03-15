@@ -13,7 +13,7 @@ import { RiskIndicator } from "@/components/RiskIndicator";
 import { useVaults, type SortField } from "@/hooks/useVaults";
 import { formatUsd, formatApy } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Search, FilterX } from "lucide-react";
 
 const TYPE_LABELS: Record<string, string> = {
   "hedera-native": "HEDERA",
@@ -191,11 +191,28 @@ export function VaultDiscovery() {
             ))}
             {vaults.length === 0 && (
               <tr>
-                <td
-                  colSpan={7}
-                  className="text-center py-16 text-[13px] text-muted-foreground"
-                >
-                  // NO VAULTS FOUND MATCHING YOUR FILTERS
+                <td colSpan={7} className="py-16">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-10 h-10 flex items-center justify-center border border-border bg-secondary mb-3">
+                      <FilterX className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-[13px] font-medium text-foreground mb-1">
+                      No Vaults Found
+                    </p>
+                    <p className="text-[11px] text-muted-foreground tracking-[0.5px] uppercase mb-3">
+                      // TRY ADJUSTING YOUR FILTERS OR SEARCH QUERY
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearch("");
+                        setRiskFilter("all");
+                        setTypeFilter("all");
+                      }}
+                      className="text-[11px] font-bold tracking-[0.5px] uppercase text-primary hover:underline"
+                    >
+                      CLEAR ALL FILTERS
+                    </button>
+                  </div>
                 </td>
               </tr>
             )}

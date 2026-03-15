@@ -32,7 +32,8 @@ import {
   formatUsdPrecise,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { ArrowLeft, Loader2, SearchX } from "lucide-react";
 
 const TYPE_LABELS: Record<string, string> = {
   "hedera-native": "HEDERA NATIVE",
@@ -56,13 +57,26 @@ export function VaultDetail() {
   if (!vault) {
     return (
       <div className="max-w-7xl mx-auto px-8 py-10">
-        <p className="text-[13px] text-muted-foreground">// VAULT NOT FOUND</p>
         <Link
           to="/vaults"
-          className={cn(buttonVariants({ variant: "outline" }), "mt-4 text-[11px] font-bold tracking-[0.5px] uppercase")}
+          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground hover:text-primary mb-8 transition-colors tracking-[0.5px] uppercase"
         >
+          <ArrowLeft className="h-3.5 w-3.5" />
           BACK TO VAULTS
         </Link>
+        <EmptyState
+          icon={SearchX}
+          title="Vault Not Found"
+          description={`No vault found with ID "${id}". It may have been removed or the URL is incorrect.`}
+          action={
+            <Link
+              to="/vaults"
+              className={cn(buttonVariants({ variant: "outline" }), "text-[11px] font-bold tracking-[0.5px] uppercase")}
+            >
+              BROWSE VAULTS
+            </Link>
+          }
+        />
       </div>
     );
   }
@@ -203,13 +217,37 @@ export function VaultDetail() {
             </h2>
 
             {!isConnected ? (
-              <div className="text-center py-8">
-                <p className="text-[13px] text-muted-foreground mb-4">
-                  CONNECT WALLET TO PROCEED
-                </p>
-                <Button onClick={connect} className="w-full text-[11px] font-bold tracking-[0.5px] uppercase">
-                  CONNECT WALLET
-                </Button>
+              <div className="space-y-4">
+                {/* Ghost tab bar */}
+                <div className="grid grid-cols-2 gap-1 bg-secondary p-1 pointer-events-none select-none">
+                  <div className="h-8 bg-card border border-border flex items-center justify-center">
+                    <span className="text-[11px] font-bold tracking-[0.5px] text-foreground uppercase">DEPOSIT</span>
+                  </div>
+                  <div className="h-8 flex items-center justify-center">
+                    <span className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">WITHDRAW</span>
+                  </div>
+                </div>
+
+                {/* Ghost fields */}
+                <div className="space-y-3 pointer-events-none select-none opacity-40">
+                  <div>
+                    <div className="h-3 w-12 bg-secondary mb-1.5" />
+                    <div className="h-9 border border-border bg-secondary" />
+                  </div>
+                  <div>
+                    <div className="h-3 w-16 bg-secondary mb-1.5" />
+                    <div className="h-9 border border-border bg-secondary" />
+                  </div>
+                </div>
+
+                <div className="border-t border-border pt-4 space-y-3">
+                  <p className="text-[11px] text-muted-foreground tracking-[0.5px] uppercase text-center">
+                    // WALLET REQUIRED TO INVEST
+                  </p>
+                  <Button onClick={connect} className="w-full text-[11px] font-bold tracking-[0.5px] uppercase">
+                    CONNECT WALLET
+                  </Button>
+                </div>
               </div>
             ) : (
               <Tabs defaultValue="deposit">
