@@ -2,13 +2,6 @@ import { useParams, Link } from "react-router";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -24,16 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/StatCard";
 import { TokenIcon } from "@/components/TokenIcon";
 import { RiskIndicator } from "@/components/RiskIndicator";
@@ -51,9 +35,9 @@ import { cn } from "@/lib/utils";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 const TYPE_LABELS: Record<string, string> = {
-  "hedera-native": "Hedera Native",
-  "multi-chain": "Multi-Chain",
-  hybrid: "Hybrid",
+  "hedera-native": "HEDERA NATIVE",
+  "multi-chain": "MULTI-CHAIN",
+  hybrid: "HYBRID",
 };
 
 export function VaultDetail() {
@@ -66,20 +50,18 @@ export function VaultDetail() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<"deposit" | "withdraw">(
-    "deposit"
-  );
+  const [confirmAction, setConfirmAction] = useState<"deposit" | "withdraw">("deposit");
   const [confirmAmount, setConfirmAmount] = useState("");
 
   if (!vault) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <p className="text-muted-foreground">Vault not found.</p>
+      <div className="max-w-7xl mx-auto px-8 py-10">
+        <p className="text-[13px] text-muted-foreground">// VAULT NOT FOUND</p>
         <Link
           to="/vaults"
-          className={cn(buttonVariants({ variant: "ghost" }), "mt-4")}
+          className={cn(buttonVariants({ variant: "outline" }), "mt-4 text-[11px] font-bold tracking-[0.5px] uppercase")}
         >
-          Back to Vaults
+          BACK TO VAULTS
         </Link>
       </div>
     );
@@ -97,238 +79,215 @@ export function VaultDetail() {
     setConfirmAmount(amount);
     setShowConfirm(true);
 
-    if (action === "deposit") {
-      setDepositAmount("");
-    } else {
-      setWithdrawAmount("");
-    }
+    if (action === "deposit") setDepositAmount("");
+    else setWithdrawAmount("");
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="max-w-7xl mx-auto px-8 py-10">
       {/* Back link */}
       <Link
         to="/vaults"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground hover:text-primary mb-8 transition-colors tracking-[0.5px] uppercase"
       >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Vaults
+        <ArrowLeft className="h-3.5 w-3.5" />
+        BACK TO VAULTS
       </Link>
 
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
+          <p className="text-[11px] font-bold tracking-[0.5px] text-primary uppercase mb-2">
+            // VAULT DETAIL
+          </p>
+          <h1 className="text-[42px] font-bold tracking-[-1px] text-foreground font-display leading-tight mb-3">
             {vault.name}
           </h1>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{TYPE_LABELS[vault.strategy.type]}</Badge>
+            <span className="text-[9px] font-bold tracking-[0.5px] text-muted-foreground border border-border px-2 py-0.5">
+              {TYPE_LABELS[vault.strategy.type]}
+            </span>
             <RiskIndicator level={vault.strategy.riskLevel} />
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
         <StatCard label="APY" value={formatApy(vault.apy)} />
-        <StatCard label="Total Value Locked" value={formatUsd(vault.tvl)} />
-        <StatCard
-          label="Depositors"
-          value={formatNumber(vault.totalDepositors)}
-        />
-        <StatCard label="Inception" value={formatDate(vault.inception)} />
+        <StatCard label="TOTAL_VALUE_LOCKED" value={formatUsd(vault.tvl)} />
+        <StatCard label="DEPOSITORS" value={formatNumber(vault.totalDepositors)} />
+        <StatCard label="INCEPTION" value={formatDate(vault.inception)} />
       </div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left column */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Strategy */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Strategy</CardTitle>
-              <CardDescription>{vault.strategy.name}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {vault.strategy.description}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="border border-border bg-card p-6">
+            <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-1">
+              // STRATEGY
+            </h2>
+            <p className="text-[18px] font-semibold font-display text-foreground mb-3">
+              {vault.strategy.name}
+            </p>
+            <p className="text-[13px] text-muted-foreground leading-relaxed">
+              {vault.strategy.description}
+            </p>
+          </div>
 
           {/* Token Allocation */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Token Allocation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Token</TableHead>
-                    <TableHead className="text-right">Allocation</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {vault.tokens.map((vt) => (
-                    <TableRow key={vt.token.symbol + vt.token.chain}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <TokenIcon
-                            symbol={vt.token.symbol}
-                            color={vt.token.iconColor}
-                          />
-                          <div>
-                            <p className="font-medium">{vt.token.symbol}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {vt.token.name}
-                            </p>
-                          </div>
+          <div className="border border-border bg-card p-6">
+            <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-4">
+              // TOKEN ALLOCATION
+            </h2>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase pb-3">
+                    TOKEN
+                  </th>
+                  <th className="text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase pb-3">
+                    ALLOC
+                  </th>
+                  <th className="text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase pb-3">
+                    QTY
+                  </th>
+                  <th className="text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase pb-3">
+                    PRICE
+                  </th>
+                  <th className="text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase pb-3">
+                    VALUE
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {vault.tokens.map((vt) => (
+                  <tr key={vt.token.symbol + vt.token.chain} className="border-b border-border">
+                    <td className="py-3">
+                      <div className="flex items-center gap-3">
+                        <TokenIcon symbol={vt.token.symbol} color={vt.token.iconColor} />
+                        <div>
+                          <p className="text-[13px] font-semibold">{vt.token.symbol}</p>
+                          <p className="text-[11px] text-muted-foreground">{vt.token.name}</p>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {vt.allocation}%
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {formatNumber(vt.quantity)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatUsdPrecise(vt.token.price)}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatUsd(vt.quantity * vt.token.price)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                      </div>
+                    </td>
+                    <td className="text-right text-[13px] font-medium">{vt.allocation}%</td>
+                    <td className="text-right text-[13px] font-medium">{formatNumber(vt.quantity)}</td>
+                    <td className="text-right text-[13px] text-muted-foreground">{formatUsdPrecise(vt.token.price)}</td>
+                    <td className="text-right text-[13px] font-semibold text-primary">
+                      {formatUsd(vt.quantity * vt.token.price)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Fees */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Fee Structure</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FeeBreakdown fees={vault.fees} />
-            </CardContent>
-          </Card>
+          <div className="border border-border bg-card p-6">
+            <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-4">
+              // FEE STRUCTURE
+            </h2>
+            <FeeBreakdown fees={vault.fees} />
+          </div>
         </div>
 
         {/* Right column — Deposit / Withdraw */}
         <div>
-          <Card className="sticky top-24">
-            <CardHeader>
-              <CardTitle>Invest</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!isConnected ? (
-                <div className="text-center py-6">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Connect your wallet to deposit or withdraw
-                  </p>
-                  <Button onClick={connect} className="w-full">
-                    Connect Wallet
+          <div className="border border-border bg-card p-6 sticky top-20">
+            <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-4">
+              // INVEST
+            </h2>
+
+            {!isConnected ? (
+              <div className="text-center py-8">
+                <p className="text-[13px] text-muted-foreground mb-4">
+                  CONNECT WALLET TO PROCEED
+                </p>
+                <Button onClick={connect} className="w-full text-[11px] font-bold tracking-[0.5px] uppercase">
+                  CONNECT WALLET
+                </Button>
+              </div>
+            ) : (
+              <Tabs defaultValue="deposit">
+                <TabsList className="w-full">
+                  <TabsTrigger value="deposit" className="flex-1 text-[11px] font-bold tracking-[0.5px] uppercase">
+                    DEPOSIT
+                  </TabsTrigger>
+                  <TabsTrigger value="withdraw" className="flex-1 text-[11px] font-bold tracking-[0.5px] uppercase">
+                    WITHDRAW
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="deposit" className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
+                      TOKEN
+                    </label>
+                    <Select value={depositToken} onValueChange={(v) => setDepositToken(v ?? "")}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="SELECT TOKEN" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vault.tokens.map((vt) => (
+                          <SelectItem key={vt.token.symbol + vt.token.chain} value={vt.token.symbol}>
+                            {vt.token.symbol} — {vt.token.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
+                      AMOUNT
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      min="0"
+                    />
+                  </div>
+                  <Separator />
+                  <Button
+                    className="w-full text-[11px] font-bold tracking-[0.5px] uppercase"
+                    disabled={isLoading || !depositAmount || !depositToken}
+                    onClick={() => handleSubmit("deposit")}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "DEPOSIT"}
                   </Button>
-                </div>
-              ) : (
-                <Tabs defaultValue="deposit">
-                  <TabsList className="w-full">
-                    <TabsTrigger value="deposit" className="flex-1">
-                      Deposit
-                    </TabsTrigger>
-                    <TabsTrigger value="withdraw" className="flex-1">
-                      Withdraw
-                    </TabsTrigger>
-                  </TabsList>
+                </TabsContent>
 
-                  <TabsContent value="deposit" className="space-y-4 mt-4">
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-1.5 block">
-                        Token
-                      </label>
-                      <Select
-                        value={depositToken}
-                        onValueChange={(v) => setDepositToken(v ?? "")}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select token" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vault.tokens.map((vt) => (
-                            <SelectItem
-                              key={vt.token.symbol + vt.token.chain}
-                              value={vt.token.symbol}
-                            >
-                              {vt.token.symbol} — {vt.token.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-1.5 block">
-                        Amount
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={depositAmount}
-                        onChange={(e) => setDepositAmount(e.target.value)}
-                        min="0"
-                      />
-                    </div>
-                    <Separator />
-                    <Button
-                      className="w-full"
-                      disabled={
-                        isLoading || !depositAmount || !depositToken
-                      }
-                      onClick={() => handleSubmit("deposit")}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Deposit"
-                      )}
-                    </Button>
-                  </TabsContent>
-
-                  <TabsContent value="withdraw" className="space-y-4 mt-4">
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-1.5 block">
-                        Amount (USD)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        min="0"
-                      />
-                    </div>
-                    <Separator />
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      disabled={isLoading || !withdrawAmount}
-                      onClick={() => handleSubmit("withdraw")}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Withdraw"
-                      )}
-                    </Button>
-                  </TabsContent>
-                </Tabs>
-              )}
-            </CardContent>
-          </Card>
+                <TabsContent value="withdraw" className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
+                      AMOUNT_USD
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={withdrawAmount}
+                      onChange={(e) => setWithdrawAmount(e.target.value)}
+                      min="0"
+                    />
+                  </div>
+                  <Separator />
+                  <Button
+                    variant="outline"
+                    className="w-full text-[11px] font-bold tracking-[0.5px] uppercase"
+                    disabled={isLoading || !withdrawAmount}
+                    onClick={() => handleSubmit("withdraw")}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "WITHDRAW"}
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            )}
+          </div>
         </div>
       </div>
 
@@ -336,17 +295,18 @@ export function VaultDetail() {
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Transaction Submitted</DialogTitle>
-            <DialogDescription>
-              Your {confirmAction} of ${confirmAmount} has been submitted to the
-              network.
+            <DialogTitle className="text-[18px] font-bold font-display tracking-[-1px]">
+              [TX SUBMITTED]
+            </DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">
+              Your {confirmAction.toUpperCase()} of ${confirmAmount} has been submitted to the network.
             </DialogDescription>
           </DialogHeader>
-          <div className="rounded-md bg-muted p-3 font-mono text-xs text-muted-foreground break-all">
-            tx: 0x{Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")}
+          <div className="bg-secondary border border-border p-3 text-[11px] text-muted-foreground break-all">
+            TX_HASH: 0x{Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")}
           </div>
-          <Button onClick={() => setShowConfirm(false)} className="w-full">
-            Done
+          <Button onClick={() => setShowConfirm(false)} className="w-full text-[11px] font-bold tracking-[0.5px] uppercase">
+            DONE
           </Button>
         </DialogContent>
       </Dialog>

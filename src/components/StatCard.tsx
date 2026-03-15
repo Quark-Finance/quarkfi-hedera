@@ -7,13 +7,17 @@ interface StatCardProps {
 
 export function StatCard({ label, value, subValue, className = "" }: StatCardProps) {
   return (
-    <div className={`rounded-lg border border-border bg-card p-5 ${className}`}>
-      <p className="text-sm text-muted-foreground mb-1">{label}</p>
-      <p className="text-2xl font-semibold tracking-tight text-foreground">
+    <div className={`border border-border bg-card p-5 ${className}`}>
+      <p className="text-[11px] font-medium tracking-[0.5px] uppercase text-muted-foreground mb-2">
+        {label}
+      </p>
+      <p className="text-[32px] font-bold tracking-[-1px] text-foreground font-display leading-none">
         {value}
       </p>
       {subValue && (
-        <p className="text-sm text-muted-foreground mt-1">{subValue}</p>
+        <p className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground mt-2 uppercase">
+          {subValue}
+        </p>
       )}
     </div>
   );

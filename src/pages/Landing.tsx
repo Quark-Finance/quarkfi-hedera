@@ -10,53 +10,64 @@ export function Landing() {
   const { aggregates } = useVaults();
 
   return (
-    <div className="max-w-7xl mx-auto px-6">
+    <div className="max-w-7xl mx-auto px-8">
       {/* Hero */}
-      <section className="py-24 text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-foreground mb-4">
-          Institutional-Grade
-          <br />
-          DeFi Yields
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-          Quark brings decentralized finance to institutions. Invest in
-          professionally managed vaults on Hedera with transparent fees,
-          real-time analytics, and institutional compliance.
+      <section className="py-28 text-center">
+        <p className="text-[11px] font-bold tracking-[0.5px] text-primary uppercase mb-6">
+          // INSTITUTIONAL DEFI PROTOCOL
         </p>
-        <div className="flex items-center justify-center gap-4">
+        <h1 className="text-[42px] font-bold tracking-[-1px] text-foreground font-display leading-tight mb-4">
+          Bring DeFi Yields
+          <br />
+          To Institutions
+        </h1>
+        <p className="text-[14px] font-normal text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+          Quark delivers institutional-grade decentralized finance on Hedera.
+          Professionally managed vaults, transparent fees, real-time analytics.
+        </p>
+        <div className="flex items-center justify-center gap-3">
           <Link
             to="/vaults"
-            className={cn(buttonVariants({ size: "lg" }), "gap-2")}
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "gap-2 text-[11px] font-bold tracking-[0.5px] uppercase"
+            )}
           >
-            Explore Vaults
-            <ArrowRight className="h-4 w-4" />
+            EXPLORE VAULTS
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             to="/portfolio"
-            className={buttonVariants({ variant: "outline", size: "lg" })}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "text-[11px] font-bold tracking-[0.5px] uppercase"
+            )}
           >
-            View Portfolio
+            VIEW PORTFOLIO
           </Link>
         </div>
       </section>
 
       {/* Platform Stats */}
-      <section className="pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="pb-28">
+        <p className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-4">
+          // SYSTEM STATUS
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <StatCard
-            label="Total Value Locked"
+            label="TOTAL_VALUE_LOCKED"
             value={formatUsd(aggregates.totalTvl)}
-            subValue="Across all vaults"
+            subValue="ACROSS ALL VAULTS"
           />
           <StatCard
-            label="Average APY"
+            label="AVERAGE_APY"
             value={formatApy(aggregates.avgApy)}
-            subValue="Net of fees"
+            subValue="NET OF FEES"
           />
           <StatCard
-            label="Total Depositors"
+            label="TOTAL_DEPOSITORS"
             value={formatNumber(aggregates.totalDepositors)}
-            subValue="Institutional investors"
+            subValue="INSTITUTIONAL INVESTORS"
           />
         </div>
       </section>

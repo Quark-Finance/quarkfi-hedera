@@ -1,29 +1,10 @@
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/StatCard";
 import { useWallet } from "@/hooks/useWallet";
 import { MOCK_PORTFOLIO } from "@/data/user";
 import { VAULTS } from "@/data/vaults";
-import {
-  formatUsd,
-  formatPercent,
-  formatDate,
-} from "@/lib/format";
+import { formatUsd, formatPercent, formatDate } from "@/lib/format";
 import { Wallet, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
 function getVaultName(vaultId: string): string {
@@ -35,17 +16,16 @@ export function UserAssets() {
 
   if (!isConnected) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-24 text-center">
-        <Wallet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-foreground mb-2">
-          Connect Your Wallet
-        </h2>
-        <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-          Connect your wallet to view your portfolio, positions, and transaction
-          history.
-        </p>
-        <Button onClick={connect} size="lg">
+      <div className="max-w-7xl mx-auto px-8 py-28 text-center">
+        <Wallet className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-[32px] font-bold font-display tracking-[-1px] text-foreground mb-2">
           Connect Wallet
+        </h2>
+        <p className="text-[13px] text-muted-foreground mb-6 max-w-sm mx-auto">
+          CONNECT YOUR WALLET TO VIEW PORTFOLIO, POSITIONS, AND TRANSACTION HISTORY.
+        </p>
+        <Button onClick={connect} size="lg" className="text-[11px] font-bold tracking-[0.5px] uppercase">
+          CONNECT WALLET
         </Button>
       </div>
     );
@@ -55,135 +35,147 @@ export function UserAssets() {
     MOCK_PORTFOLIO;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground mb-8">
+    <div className="max-w-7xl mx-auto px-8 py-10">
+      <p className="text-[11px] font-bold tracking-[0.5px] text-primary uppercase mb-2">
+        // PORTFOLIO OVERVIEW
+      </p>
+      <h1 className="text-[42px] font-bold tracking-[-1px] text-foreground font-display mb-8">
         Portfolio
       </h1>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Total Value" value={formatUsd(totalValue)} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-10">
+        <StatCard label="TOTAL_VALUE" value={formatUsd(totalValue)} />
         <StatCard
-          label="Total P&L"
+          label="TOTAL_PNL"
           value={`${totalPnl >= 0 ? "+" : ""}${formatUsd(totalPnl)}`}
           subValue={formatPercent(totalPnlPercent)}
         />
         <StatCard
-          label="Active Positions"
+          label="ACTIVE_POSITIONS"
           value={String(positions.length)}
-          subValue="Across vaults"
+          subValue="ACROSS VAULTS"
         />
       </div>
 
       {/* Positions */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Positions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {positions.map((pos) => (
-              <div
-                key={pos.vaultId}
-                className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30"
-              >
-                <div>
-                  <Link
-                    to={`/vaults/${pos.vaultId}`}
-                    className="font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    {getVaultName(pos.vaultId)}
-                  </Link>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Deposited {formatDate(pos.depositDate)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-foreground">
-                    {formatUsd(pos.currentValue)}
-                  </p>
-                  <p
-                    className={`text-sm font-medium ${
-                      pos.pnl >= 0 ? "text-positive" : "text-negative"
-                    }`}
-                  >
-                    {pos.pnl >= 0 ? "+" : ""}
-                    {formatUsd(pos.pnl)} ({formatPercent(pos.pnlPercent)})
-                  </p>
-                </div>
+      <div className="border border-border bg-card mb-4">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+            // POSITIONS
+          </h2>
+        </div>
+        <div className="divide-y divide-border">
+          {positions.map((pos) => (
+            <div
+              key={pos.vaultId}
+              className="flex items-center justify-between px-6 py-4 hover:bg-secondary/30 transition-colors"
+            >
+              <div>
+                <Link
+                  to={`/vaults/${pos.vaultId}`}
+                  className="text-[13px] font-semibold text-foreground hover:text-primary transition-colors"
+                >
+                  {getVaultName(pos.vaultId)}
+                </Link>
+                <p className="text-[11px] text-muted-foreground mt-0.5 tracking-[0.5px]">
+                  DEPOSITED {formatDate(pos.depositDate)}
+                </p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="text-right">
+                <p className="text-[18px] font-bold font-display tracking-[-1px] text-foreground">
+                  {formatUsd(pos.currentValue)}
+                </p>
+                <p
+                  className={`text-[11px] font-bold tracking-[0.5px] ${
+                    pos.pnl >= 0 ? "text-primary" : "text-negative"
+                  }`}
+                >
+                  {pos.pnl >= 0 ? "+" : ""}
+                  {formatUsd(pos.pnl)} ({formatPercent(pos.pnlPercent)})
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Transaction History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Vault</TableHead>
-                <TableHead>Token</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Date</TableHead>
-                <TableHead className="text-right">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {tx.type === "deposit" ? (
-                        <ArrowDownLeft className="h-4 w-4 text-positive" />
-                      ) : (
-                        <ArrowUpRight className="h-4 w-4 text-negative" />
-                      )}
-                      <span className="capitalize">{tx.type}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/vaults/${tx.vaultId}`}
-                      className="hover:text-primary transition-colors"
-                    >
-                      {getVaultName(tx.vaultId)}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {tx.tokenSymbol}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatUsd(tx.amount)}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {formatDate(tx.timestamp)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge
-                      variant={
-                        tx.status === "completed" ? "outline" : "secondary"
-                      }
-                      className={
-                        tx.status === "completed"
-                          ? "border-positive/30 text-positive"
-                          : ""
-                      }
-                    >
-                      {tx.status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <div className="border border-border bg-card">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+            // TRANSACTION HISTORY
+          </h2>
+        </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="px-6 py-3 text-left text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                TYPE
+              </th>
+              <th className="px-6 py-3 text-left text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                VAULT
+              </th>
+              <th className="px-6 py-3 text-left text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                TOKEN
+              </th>
+              <th className="px-6 py-3 text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                AMOUNT
+              </th>
+              <th className="px-6 py-3 text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                DATE
+              </th>
+              <th className="px-6 py-3 text-right text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+                STATUS
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.map((tx) => (
+              <tr key={tx.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                <td className="px-6 py-3">
+                  <div className="flex items-center gap-2">
+                    {tx.type === "deposit" ? (
+                      <ArrowDownLeft className="h-3.5 w-3.5 text-primary" />
+                    ) : (
+                      <ArrowUpRight className="h-3.5 w-3.5 text-negative" />
+                    )}
+                    <span className="text-[13px] font-medium uppercase">{tx.type}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-3">
+                  <Link
+                    to={`/vaults/${tx.vaultId}`}
+                    className="text-[13px] font-medium hover:text-primary transition-colors"
+                  >
+                    {getVaultName(tx.vaultId)}
+                  </Link>
+                </td>
+                <td className="px-6 py-3 text-[13px] text-muted-foreground font-medium">
+                  {tx.tokenSymbol}
+                </td>
+                <td className="px-6 py-3 text-right text-[13px] font-semibold">
+                  {formatUsd(tx.amount)}
+                </td>
+                <td className="px-6 py-3 text-right text-[13px] text-muted-foreground">
+                  {formatDate(tx.timestamp)}
+                </td>
+                <td className="px-6 py-3 text-right">
+                  <span
+                    className={`text-[9px] font-bold tracking-[0.5px] uppercase px-2 py-0.5 border ${
+                      tx.status === "completed"
+                        ? "text-primary border-primary/40 bg-primary/10"
+                        : "text-warning border-warning/40 bg-warning/10"
+                    }`}
+                  >
+                    [{tx.status === "completed" ? "COMPLETED" : "PENDING"}]
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
