@@ -6,11 +6,13 @@ import {
   LayoutDashboard,
   Wallet,
   LogOut,
+  Bot,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/vaults", label: "VAULTS", icon: LayoutDashboard },
   { to: "/portfolio", label: "PORTFOLIO", icon: Wallet },
+  { to: "/ai", label: "QUARK AI", icon: Bot },
 ];
 
 export function Sidebar() {

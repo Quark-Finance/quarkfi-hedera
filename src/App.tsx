@@ -5,6 +5,7 @@ import { Landing } from "@/pages/Landing";
 import { VaultDiscovery } from "@/pages/VaultDiscovery";
 import { VaultDetail } from "@/pages/VaultDetail";
 import { UserAssets } from "@/pages/UserAssets";
+import { QuarkAI } from "@/pages/QuarkAI";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/vaults" element={<VaultDiscovery />} />
         <Route path="/vaults/:id" element={<VaultDetail />} />
         <Route path="/portfolio" element={<UserAssets />} />
+        <Route path="/ai" element={<QuarkAI />} />
       </Route>
     </Routes>
   );
