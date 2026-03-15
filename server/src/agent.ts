@@ -1,0 +1,124 @@
+import { Client, PrivateKey } from "@hashgraph/sdk";
+import {
+  HederaLangchainToolkit,
+  AgentMode,
+  ResponseParserService,
+} from "hedera-agent-kit";
+import { createAgent } from "langchain";
+import { MemorySaver } from "@langchain/langgraph";
+import { ChatAnthropic } from "@langchain/anthropic";
+
+const SYSTEM_PROMPT = `You are Quark AI, an institutional-grade DeFi assistant powered by the Hedera network.
+
+You have access to Hedera blockchain tools that allow you to:
+- Query account balances and token holdings
+- Transfer HBAR and HTS tokens
+- Create and manage fungible and non-fungible tokens
+- Interact with Hedera Consensus Service (topics and messages)
+- Deploy and interact with smart contracts
+- Query exchange rates and transaction records
+
+Guidelines:
+- Always confirm transaction details before executing transfers or state-changing operations.
+- Format monetary values clearly with token symbols and USD equivalents when possible.
+- When reporting balances, include all relevant token holdings.
+- For errors, explain what went wrong and suggest corrective actions.
+- Be concise and precise — this is an institutional platform.
+- When asked about vault operations, explain that vault smart contract interactions are coming soon.`;
+
+let agent: Awaited<ReturnType<typeof createAgent>> | null = null;
+let toolkit: HederaLangchainToolkit | null = null;
+let responseParser: ResponseParserService | null = null;
+
+export async function getAgent() {
+  if (agent) return { agent, toolkit: toolkit!, responseParser: responseParser! };
+
+  const accountId = process.env.ACCOUNT_ID;
+  const privateKey = process.env.PRIVATE_KEY;
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!accountId || !privateKey) {
+    throw new Error("ACCOUNT_ID and PRIVATE_KEY environment variables are required");
+  }
+  if (!anthropicApiKey) {
+    throw new Error("ANTHROPIC_API_KEY environment variable is required");
+  }
+
+  const client = Client.forTestnet().setOperator(
+    accountId,
+    PrivateKey.fromStringDer(privateKey)
+  );
+
+  toolkit = new HederaLangchainToolkit({
+    client,
+    configuration: {
+      tools: [],
+      plugins: [],
+      context: {
+        mode: AgentMode.AUTONOMOUS,
+      },
+    },
+  });
+
+  const llm = new ChatAnthropic({
+    model: "claude-sonnet-4-5-20250929",
+    apiKey: anthropicApiKey,
+  });
+
+  const tools = toolkit.getTools();
+  responseParser = new ResponseParserService(tools);
+
+  agent = await createAgent({
+    model: llm,
+    tools,
+    systemPrompt: SYSTEM_PROMPT,
+    checkpointer: new MemorySaver(),
+  });
+
+  console.log(`[AGENT] Initialized with ${tools.length} tools on Hedera testnet`);
+
+  return { agent, toolkit, responseParser };
+}
+
+export interface AgentResponse {
+  content: string;
+  toolCalls: {
+    name: string;
+    humanMessage?: string;
+    raw?: unknown;
+  }[];
+}
+
+export async function invokeAgent(
+  message: string,
+  threadId: string
+): Promise<AgentResponse> {
+  const { agent, responseParser } = await getAgent();
+
+  const response = await agent.invoke(
+    { messages: [{ role: "user", content: message }] },
+    { configurable: { thread_id: threadId } }
+  );
+
+  const lastMessage = response.messages[response.messages.length - 1];
+  const content =
+    typeof lastMessage.content === "string"
+      ? lastMessage.content
+      : JSON.stringify(lastMessage.content);
+
+  const toolCalls: AgentResponse["toolCalls"] = [];
+  try {
+    const parsed = responseParser.parseNewToolMessages(response);
+    for (const p of parsed) {
+      toolCalls.push({
+        name: p.toolName ?? "unknown",
+        humanMessage: p.parsedData?.humanMessage,
+        raw: p.parsedData?.raw,
+      });
+    }
+  } catch {
+    // parsing is optional, don't fail if it errors
+  }
+
+  return { content, toolCalls };
+}
