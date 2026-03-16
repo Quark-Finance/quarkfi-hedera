@@ -24,10 +24,13 @@ import { RiskIndicator } from "@/components/RiskIndicator";
 import { FeeBreakdown } from "@/components/FeeBreakdown";
 import { useVault } from "@/hooks/useVaults";
 import { useWallet } from "@/hooks/useWallet";
+import { MOCK_PORTFOLIO } from "@/data/user";
+import { TOKENS } from "@/data/tokens";
 import {
   formatUsd,
   formatApy,
   formatNumber,
+  formatPercent,
   formatDate,
   formatUsdPrecise,
 } from "@/lib/format";
@@ -45,10 +48,16 @@ export function VaultDetail() {
   const { id } = useParams<{ id: string }>();
   const vault = useVault(id!);
   const { isConnected, connect } = useWallet();
+  const userPosition = MOCK_PORTFOLIO.positions.find((p) => p.vaultId === id);
 
   const [depositToken, setDepositToken] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
+  const [withdrawToken, setWithdrawToken] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+
+  const selectedWithdrawHolding = userPosition?.holdings.find(
+    (h) => `${h.tokenSymbol}:${h.chain}` === withdrawToken
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"deposit" | "withdraw">("deposit");
@@ -216,6 +225,64 @@ export function VaultDetail() {
               // INVEST
             </h2>
 
+            {/* User's current position in this vault */}
+            {isConnected && userPosition && (
+              <div className="border border-border bg-secondary/30 mb-4">
+                <div className="px-4 py-2.5 border-b border-border">
+                  <p className="text-[10px] font-bold tracking-[0.5px] text-primary uppercase">
+                    // YOUR POSITION
+                  </p>
+                </div>
+                <div className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 border-b border-border">
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">CURRENT VALUE</p>
+                    <p className="text-[15px] font-bold font-display tracking-[-0.5px] text-foreground">{formatUsd(userPosition.currentValue)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">COST BASIS</p>
+                    <p className="text-[15px] font-bold font-display tracking-[-0.5px] text-foreground">{formatUsd(userPosition.depositedAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">P&amp;L</p>
+                    <p className={`text-[13px] font-bold tracking-[0.5px] ${userPosition.pnl >= 0 ? "text-primary" : "text-negative"}`}>
+                      {userPosition.pnl >= 0 ? "+" : ""}{formatUsd(userPosition.pnl)} ({formatPercent(userPosition.pnlPercent)})
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">SINCE</p>
+                    <p className="text-[13px] font-medium text-muted-foreground">{formatDate(userPosition.depositDate)}</p>
+                  </div>
+                </div>
+                {/* Holdings breakdown */}
+                <div className="divide-y divide-border">
+                  {userPosition.holdings.map((h, i) => {
+                    const tokenColor = Object.values(TOKENS).find(
+                      (t) => t.symbol === h.tokenSymbol && t.chain === h.chain
+                    )?.iconColor ?? "#555555";
+                    return (
+                      <div key={i} className="flex items-center justify-between px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <TokenIcon symbol={h.tokenSymbol} color={tokenColor} size="sm" />
+                          <div>
+                            <span className="text-[11px] font-semibold text-foreground">{h.tokenSymbol}</span>
+                            {h.chain !== "hedera" && (
+                              <span className="ml-1 text-[9px] font-bold tracking-[0.5px] text-muted-foreground border border-border px-1">
+                                {h.chain.toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[11px] font-semibold text-foreground">{formatUsd(h.valueUsd)}</p>
+                          <p className="text-[10px] text-muted-foreground">{formatNumber(h.quantity)} {h.tokenSymbol}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {!isConnected ? (
               <div className="space-y-4">
                 {/* Ghost tab bar */}
@@ -301,10 +368,49 @@ export function VaultDetail() {
                 </TabsContent>
 
                 <TabsContent value="withdraw" className="space-y-4 mt-4">
+                  {/* Token selector */}
                   <div>
                     <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
-                      AMOUNT_USD
+                      TOKEN
                     </label>
+                    <Select
+                      value={withdrawToken}
+                      onValueChange={(v) => {
+                        setWithdrawToken(v ?? "");
+                        setWithdrawAmount("");
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="SELECT TOKEN" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(userPosition?.holdings ?? vault.tokens.map((vt) => ({
+                          tokenSymbol: vt.token.symbol,
+                          chain: vt.token.chain,
+                          quantity: 0,
+                          valueUsd: 0,
+                        }))).map((h) => (
+                          <SelectItem key={`${h.tokenSymbol}:${h.chain}`} value={`${h.tokenSymbol}:${h.chain}`}>
+                            {h.tokenSymbol}{h.chain !== "hedera" ? ` (${h.chain})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Balance + amount */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase">
+                        AMOUNT
+                      </label>
+                      {selectedWithdrawHolding && (
+                        <span className="text-[11px] text-muted-foreground tracking-[0.3px]">
+                          BAL: <span className="text-foreground font-semibold">{formatNumber(selectedWithdrawHolding.quantity)}</span> {selectedWithdrawHolding.tokenSymbol}
+                          <span className="text-muted-foreground ml-1">({formatUsd(selectedWithdrawHolding.valueUsd)})</span>
+                        </span>
+                      )}
+                    </div>
                     <Input
                       type="number"
                       placeholder="0.00"
@@ -312,12 +418,41 @@ export function VaultDetail() {
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                       min="0"
                     />
+                    {/* Quick % buttons */}
+                    {selectedWithdrawHolding && (
+                      <div className="grid grid-cols-4 gap-1 mt-2">
+                        {[25, 50, 75, 100].map((pct) => (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() =>
+                              setWithdrawAmount(
+                                ((selectedWithdrawHolding.quantity * pct) / 100).toFixed(4)
+                              )
+                            }
+                            className="py-1 border border-border bg-secondary text-[10px] font-bold tracking-[0.5px] text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors uppercase"
+                          >
+                            {pct}%
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {/* Estimated USD value */}
+                    {withdrawAmount && selectedWithdrawHolding && (
+                      <p className="text-[11px] text-muted-foreground mt-1.5 tracking-[0.3px]">
+                        ≈ {formatUsd(
+                          (parseFloat(withdrawAmount) / selectedWithdrawHolding.quantity) *
+                          selectedWithdrawHolding.valueUsd
+                        )} USD
+                      </p>
+                    )}
                   </div>
+
                   <Separator />
                   <Button
                     variant="outline"
                     className="w-full text-[11px] font-bold tracking-[0.5px] uppercase"
-                    disabled={isLoading || !withdrawAmount}
+                    disabled={isLoading || !withdrawAmount || !withdrawToken}
                     onClick={() => handleSubmit("withdraw")}
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "WITHDRAW"}

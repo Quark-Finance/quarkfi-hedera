@@ -38,6 +38,13 @@ export interface Vault {
   inception: string;
 }
 
+export interface PositionHolding {
+  tokenSymbol: string;
+  chain: string;
+  quantity: number;
+  valueUsd: number;
+}
+
 export interface UserPosition {
   vaultId: string;
   depositedAmount: number;
@@ -45,6 +52,7 @@ export interface UserPosition {
   pnl: number;
   pnlPercent: number;
   depositDate: string;
+  holdings: PositionHolding[];
 }
 
 export interface Transaction {

@@ -12,6 +12,13 @@ export const MOCK_PORTFOLIO: UserPortfolio = {
       pnl: 4_100,
       pnlPercent: 8.2,
       depositDate: "2025-10-01",
+      // Vault allocations: HBAR 40%, USDC 35%, HBARX 15%, SAUCE 10%
+      holdings: [
+        { tokenSymbol: "HBAR",  chain: "hedera", quantity: 77_286,  valueUsd: 21_640 },
+        { tokenSymbol: "USDC",  chain: "hedera", quantity: 18_935,  valueUsd: 18_935 },
+        { tokenSymbol: "HBARX", chain: "hedera", quantity: 26_177,  valueUsd:  8_115 },
+        { tokenSymbol: "SAUCE", chain: "hedera", quantity: 128_810, valueUsd:  5_410 },
+      ],
     },
     {
       vaultId: "multi-chain-growth",
@@ -20,6 +27,13 @@ export const MOCK_PORTFOLIO: UserPortfolio = {
       pnl: 7_420,
       pnlPercent: 12.37,
       depositDate: "2025-11-15",
+      // Vault allocations: ETH 35%, WBTC 30%, USDC 25%, ARB 10%
+      holdings: [
+        { tokenSymbol: "ETH",  chain: "ethereum", quantity: 6.9,    valueUsd: 23_597 },
+        { tokenSymbol: "WBTC", chain: "ethereum", quantity: 0.2074, valueUsd: 20_226 },
+        { tokenSymbol: "USDC", chain: "ethereum", quantity: 16_855, valueUsd: 16_855 },
+        { tokenSymbol: "ARB",  chain: "arbitrum", quantity: 6_020,  valueUsd:  6_742 },
+      ],
     },
     {
       vaultId: "hybrid-balanced",
@@ -28,6 +42,14 @@ export const MOCK_PORTFOLIO: UserPortfolio = {
       pnl: 1_320,
       pnlPercent: 3.93,
       depositDate: "2026-01-10",
+      // Vault allocations: HBAR 25%, ETH 25%, USDC(H) 20%, USDC(E) 20%, HBARX 10%
+      holdings: [
+        { tokenSymbol: "HBAR",  chain: "hedera",   quantity: 31_161, valueUsd: 8_725 },
+        { tokenSymbol: "ETH",   chain: "ethereum", quantity: 2.55,   valueUsd: 8_725 },
+        { tokenSymbol: "USDC",  chain: "hedera",   quantity: 6_980,  valueUsd: 6_980 },
+        { tokenSymbol: "USDC",  chain: "ethereum", quantity: 6_980,  valueUsd: 6_980 },
+        { tokenSymbol: "HBARX", chain: "hedera",   quantity: 11_258, valueUsd: 3_490 },
+      ],
     },
   ],
   transactions: [
