@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
-import { formatAddress, formatUsd } from "@/lib/format";
+import { formatAddress, formatNumber } from "@/lib/format";
 import {
   LayoutDashboard,
   Wallet,
@@ -70,7 +70,7 @@ export function Sidebar() {
               {formatAddress(address!)}
             </p>
             <p className="text-[11px] font-medium text-muted-foreground">
-              {formatUsd(balance)}
+              {formatNumber(balance)} HBAR
             </p>
             <Button
               variant="outline"

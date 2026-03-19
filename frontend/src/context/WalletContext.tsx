@@ -1,41 +1,33 @@
-import { createContext, useState, useCallback, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiProvider, type Config } from "wagmi";
+import { createAppKit } from "@reown/appkit/react";
+import {
+  wagmiAdapter,
+  projectId,
+  networks,
+  appMetadata,
+} from "@/config/wagmi";
 
-export interface WalletState {
-  isConnected: boolean;
-  address: string | null;
-  balance: number;
-  connect: () => void;
-  disconnect: () => void;
-}
+const queryClient = new QueryClient();
 
-const MOCK_ADDRESS = "0.0.4515612";
-const MOCK_BALANCE = 245_320;
-
-export const WalletContext = createContext<WalletState>({
-  isConnected: false,
-  address: null,
-  balance: 0,
-  connect: () => {},
-  disconnect: () => {},
+createAppKit({
+  adapters: [wagmiAdapter],
+  projectId,
+  networks,
+  metadata: appMetadata,
+  themeMode: "dark",
+  themeVariables: {
+    "--w3m-accent": "#00FF88",
+    "--w3m-border-radius-master": "0px",
+    "--w3m-font-family": "'JetBrains Mono Variable', monospace",
+  },
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [isConnected, setIsConnected] = useState(false);
-
-  const connect = useCallback(() => setIsConnected(true), []);
-  const disconnect = useCallback(() => setIsConnected(false), []);
-
   return (
-    <WalletContext.Provider
-      value={{
-        isConnected,
-        address: isConnected ? MOCK_ADDRESS : null,
-        balance: isConnected ? MOCK_BALANCE : 0,
-        connect,
-        disconnect,
-      }}
-    >
-      {children}
-    </WalletContext.Provider>
+    <WagmiProvider config={wagmiAdapter.wagmiConfig as Config}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </WagmiProvider>
   );
 }
