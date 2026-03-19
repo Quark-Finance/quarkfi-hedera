@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
-import { formatAddress, formatUsd } from "@/lib/format";
+import { formatAddress, formatNumber } from "@/lib/format";
 import { Wallet, LogOut } from "lucide-react";
 
 export function Navbar() {
@@ -49,7 +49,7 @@ export function Navbar() {
           {isConnected ? (
             <>
               <span className="text-[11px] font-medium text-muted-foreground tracking-[0.5px] uppercase">
-                {formatUsd(balance)}
+                {formatNumber(balance)} HBAR
               </span>
               <Button
                 variant="outline"
