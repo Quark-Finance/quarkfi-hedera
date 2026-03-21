@@ -71,6 +71,8 @@ contract Vault is Ownable, ERC20 {
 
         uint256 amountAfterFee = amount - fee;
 
+        depositToken.transfer(msg.sender, amountAfterFee);
+
         emit Withdraw(msg.sender, shares, amountAfterFee);
     }
 
