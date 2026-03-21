@@ -1,4 +1,7 @@
 {
+  "lib/devtools": {
+    "rev": "128b697838f4b0fd53ae748093fd66cc409ae5c4"
+  },
   "lib/openzeppelin-contracts": {
     "tag": {
       "name": "v5.6.1",
