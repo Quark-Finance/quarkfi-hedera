@@ -1,6 +1,7 @@
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 import { defineChain } from "viem";
+import { sepolia, baseSepolia, arbitrumSepolia } from "viem/chains";
 
 export const hederaTestnet = defineChain({
   id: 296,
@@ -15,9 +16,16 @@ export const hederaTestnet = defineChain({
   testnet: true,
 });
 
+export { sepolia, baseSepolia, arbitrumSepolia };
+
 export const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? "";
 
-export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [hederaTestnet];
+export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
+  hederaTestnet,
+  sepolia,
+  baseSepolia,
+  arbitrumSepolia,
+];
 
 export const wagmiAdapter = new WagmiAdapter({
   projectId,

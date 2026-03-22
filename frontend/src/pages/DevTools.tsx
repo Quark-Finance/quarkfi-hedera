@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
+import { parseUnits } from "viem";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
 import { formatAddress } from "@/lib/format";
-import { hederaTestnet } from "@/config/wagmi";
+import { hederaTestnet, sepolia, baseSepolia, arbitrumSepolia } from "@/config/wagmi";
+import deployments from "@/data/deployments.json";
 import {
   Wallet,
   ExternalLink,
@@ -13,6 +15,7 @@ import {
   Link2,
   FlaskConical,
   RefreshCw,
+  ArrowRightLeft,
 } from "lucide-react";
 
 const USDC_TOKEN_ADDRESS = "0x0000000000000000000000000000000000068cda" as const;
@@ -28,6 +31,19 @@ const ERC20_ABI = [
   },
 ] as const;
 
+const MINT_ABI = [
+  {
+    name: "mint",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;
+
 // HTS precompile at 0x167 for token association
 const HTS_PRECOMPILE = "0x0000000000000000000000000000000000000167" as const;
 const HTS_ABI = [
@@ -40,6 +56,37 @@ const HTS_ABI = [
       { name: "token", type: "address" },
     ],
     outputs: [{ name: "responseCode", type: "int64" }],
+  },
+] as const;
+
+const QUARK_USDC_NETWORKS = [
+  {
+    networkId: "hedera-testnet" as const,
+    label: "Hedera Testnet",
+    chain: hederaTestnet,
+    address: deployments.usdc["hedera-testnet"] as `0x${string}`,
+    explorerUrl: "https://hashscan.io/testnet/address/",
+  },
+  {
+    networkId: "ethereum-sepolia" as const,
+    label: "Ethereum Sepolia",
+    chain: sepolia,
+    address: deployments.usdc["ethereum-sepolia"] as `0x${string}`,
+    explorerUrl: "https://sepolia.etherscan.io/address/",
+  },
+  {
+    networkId: "base-sepolia" as const,
+    label: "Base Sepolia",
+    chain: baseSepolia,
+    address: deployments.usdc["base-sepolia"] as `0x${string}`,
+    explorerUrl: "https://sepolia.basescan.org/address/",
+  },
+  {
+    networkId: "arbitrum-sepolia" as const,
+    label: "Arbitrum Sepolia",
+    chain: arbitrumSepolia,
+    address: deployments.usdc["arbitrum-sepolia"] as `0x${string}`,
+    explorerUrl: "https://sepolia.arbiscan.io/address/",
   },
 ] as const;
 
@@ -67,6 +114,117 @@ function StatRow({ label, value, extra }: { label: string; value: string; extra?
         <span className="text-[13px] font-medium text-foreground font-mono">{value}</span>
         {extra}
       </div>
+    </div>
+  );
+}
+
+function OftMintRow({
+  network,
+  walletAddress,
+}: {
+  network: (typeof QUARK_USDC_NETWORKS)[number];
+  walletAddress: `0x${string}` | undefined;
+}) {
+  const [mintAmount, setMintAmount] = useState("1000");
+  const { switchChainAsync } = useSwitchChain();
+
+  const { data: balanceRaw, refetch: refetchBalance } = useReadContract({
+    address: network.address,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: [walletAddress ?? "0x"],
+    chainId: network.chain.id,
+    query: { enabled: !!walletAddress },
+  });
+
+  const {
+    data: mintTxHash,
+    isPending: isMinting,
+    writeContract: mint,
+    error: mintError,
+    reset: resetMint,
+  } = useWriteContract();
+
+  const { isLoading: isMintConfirming, isSuccess: isMintSuccess } =
+    useWaitForTransactionReceipt({ hash: mintTxHash });
+
+  const balance = balanceRaw !== undefined ? Number(balanceRaw) / 10 ** 18 : null;
+
+  const handleMint = async () => {
+    if (!walletAddress) return;
+    resetMint();
+    try {
+      await switchChainAsync({ chainId: network.chain.id });
+    } catch {
+      // User rejected chain switch — don't proceed
+      return;
+    }
+    mint({
+      address: network.address,
+      abi: MINT_ABI,
+      functionName: "mint",
+      args: [walletAddress, parseUnits(mintAmount, 18)],
+      chainId: network.chain.id,
+    });
+  };
+
+  return (
+    <div className="border border-border bg-secondary p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold tracking-[0.5px] uppercase text-foreground">
+            {network.label}
+          </span>
+          <a
+            href={`${network.explorerUrl}${network.address}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-mono text-muted-foreground">
+            {balance !== null ? `${balance.toFixed(2)} USDC` : "—"}
+          </span>
+          <button onClick={() => refetchBalance()} className="text-muted-foreground hover:text-primary transition-colors">
+            <RefreshCw className="h-2.5 w-2.5" />
+          </button>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-1">
+          <input
+            type="number"
+            value={mintAmount}
+            onChange={(e) => setMintAmount(e.target.value)}
+            className="w-24 px-2 py-1.5 bg-background border border-border text-[11px] font-mono text-foreground focus:outline-none focus:border-primary"
+            placeholder="Amount"
+          />
+          <span className="text-[10px] text-muted-foreground">USDC</span>
+        </div>
+        <Button
+          onClick={handleMint}
+          disabled={isMinting || isMintConfirming || !mintAmount}
+          variant="outline"
+          className="gap-1.5 text-[10px] font-bold tracking-[0.5px] uppercase h-8 px-3"
+        >
+          <ArrowRightLeft className="h-3 w-3" />
+          {isMinting
+            ? "CONFIRM..."
+            : isMintConfirming
+              ? "MINTING..."
+              : isMintSuccess
+                ? "MINTED"
+                : "MINT"}
+        </Button>
+      </div>
+      {mintError && (
+        <p className="text-[10px] text-negative tracking-[0.3px] break-all">
+          {mintError.message.slice(0, 150)}
+        </p>
+      )}
     </div>
   );
 }
@@ -328,6 +486,30 @@ export function DevTools() {
           </div>
         </div>
 
+        {/* OFT USDC Minting */}
+        <div className="border border-border bg-card">
+          <div className="px-5 py-3 border-b border-border">
+            <p className="text-[9px] font-bold tracking-[0.5px] text-muted-foreground uppercase">
+              // QUARK USDC MINT
+            </p>
+          </div>
+          <div className="px-5 py-4 space-y-3">
+            <p className="text-[12px] text-muted-foreground leading-relaxed">
+              Mint Quark-deployed testnet USDC tokens. The Hedera token is a standard ERC-20,
+              while Sepolia tokens are LayerZero OFT for crosschain vault deposits. Your wallet will switch networks automatically.
+            </p>
+            <div className="space-y-2">
+              {QUARK_USDC_NETWORKS.map((net) => (
+                <OftMintRow
+                  key={net.networkId}
+                  network={net}
+                  walletAddress={wagmiAddress}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Contract Reference */}
         <div className="border border-border bg-card">
           <div className="px-5 py-3 border-b border-border">
@@ -348,6 +530,14 @@ export function DevTools() {
             />
             <StatRow label="Chain ID" value="296" />
             <StatRow label="Network" value="Hedera Testnet" />
+            {QUARK_USDC_NETWORKS.map((net) => (
+              <StatRow
+                key={net.networkId}
+                label={`USDC OFT (${net.label})`}
+                value={`${net.address.slice(0, 6)}...${net.address.slice(-4)}`}
+                extra={<CopyButton text={net.address} />}
+              />
+            ))}
           </div>
         </div>
       </div>
