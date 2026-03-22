@@ -1,7 +1,15 @@
+export type Chain = "hedera" | "ethereum" | "base" | "arbitrum";
+
+export type NetworkId =
+  | "hedera-testnet"
+  | "ethereum-sepolia"
+  | "base-sepolia"
+  | "arbitrum-sepolia";
+
 export interface Token {
   symbol: string;
   name: string;
-  chain: "hedera" | "ethereum" | "polygon" | "arbitrum";
+  chain: Chain;
   price: number;
   iconColor: string;
 }
@@ -29,12 +37,14 @@ export interface VaultToken {
 export interface Vault {
   id: string;
   name: string;
+  addresses: Partial<Record<NetworkId, string>>;
   tokens: VaultToken[];
   strategy: VaultStrategy;
   fees: VaultFees;
   apy: number;
   tvl: number;
   totalDepositors: number;
+  sharePrice: number;
   inception: string;
 }
 

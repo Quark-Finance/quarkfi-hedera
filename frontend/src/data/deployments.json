@@ -1,0 +1,38 @@
+{
+  "usdc": {
+    "hedera-testnet": "0x0944830916CECb637613c9Fd0e8F6C21ccFFB4eF",
+    "ethereum-sepolia": "0xC79d193E7cfB108cFd7f8F781F0A95F56EfdcB68",
+    "arbitrum-sepolia": "0x30EA5467D7A1d6cFCc8677Ac7a4882d96DA7320D",
+    "base-sepolia": "0x50972CE2410bC1f9533d3b6d8e710917ce55769e"
+  },
+  "vaults": {
+    "hedera-high-yield-rwa": {
+      "name": "Quark Hedera High Yield RWA",
+      "addresses": {
+        "hedera-testnet": "0x62169eFC8F35DC91af254fe5B7e70cbe365913CD"
+      }
+    },
+    "hedera-btc": {
+      "name": "Quark Hedera BTC Vault",
+      "addresses": {
+        "hedera-testnet": "0xf60D71401f9e660236903aC0BaE6C43337d47871"
+      }
+    },
+    "crosschain-high-yield-defi": {
+      "name": "Quark Hedera Crosschain High Yield DeFi",
+      "addresses": {
+        "hedera-testnet": "0x8d325AD0Ca1fAdA242319B46D20c82d4EC891a85",
+        "ethereum-sepolia": "0x318919548Dd25b606A56A8F9684776c212462C53",
+        "base-sepolia": "0x701a23D3DEC9f560681D86F9407C24879C429a06"
+      }
+    },
+    "crosschain-high-yield-rwa": {
+      "name": "Quark Hedera Crosschain High Yield RWA",
+      "addresses": {
+        "hedera-testnet": "0xba8e52853e786dba35067937F142f73edEEb2ae6",
+        "ethereum-sepolia": "0x791b6A0225B10285bb1C21356aa907F401EEE485",
+        "base-sepolia": "0x2D5AC2C334d5ff0d395E60f207b4e0e888A98C44"
+      }
+    }
+  }
+}

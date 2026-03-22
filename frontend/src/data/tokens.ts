@@ -57,4 +57,11 @@ export const TOKENS: Record<string, Token> = {
     price: 1.12,
     iconColor: "#28a0f0",
   },
+  USDC_BASE: {
+    symbol: "USDC",
+    name: "USD Coin (Base)",
+    chain: "base",
+    price: 1.0,
+    iconColor: "#2775ca",
+  },
 };

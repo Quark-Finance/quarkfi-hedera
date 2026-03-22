@@ -36,7 +36,7 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
-import { ArrowLeft, Loader2, SearchX } from "lucide-react";
+import { ArrowLeft, Loader2, SearchX, ExternalLink } from "lucide-react";
 
 const TYPE_LABELS: Record<string, string> = {
   "hedera-native": "HEDERA NATIVE",
@@ -44,10 +44,24 @@ const TYPE_LABELS: Record<string, string> = {
   hybrid: "HYBRID",
 };
 
+const NETWORK_LABELS: Record<string, string> = {
+  "hedera-testnet": "Hedera Testnet",
+  "ethereum-sepolia": "Ethereum Sepolia",
+  "base-sepolia": "Base Sepolia",
+  "arbitrum-sepolia": "Arbitrum Sepolia",
+};
+
+const EXPLORER_URLS: Record<string, string> = {
+  "hedera-testnet": "https://hashscan.io/testnet/contract/",
+  "ethereum-sepolia": "https://sepolia.etherscan.io/address/",
+  "base-sepolia": "https://sepolia.basescan.org/address/",
+  "arbitrum-sepolia": "https://sepolia.arbiscan.io/address/",
+};
+
 export function VaultDetail() {
   const { id } = useParams<{ id: string }>();
   const vault = useVault(id!);
-  const { isConnected, connect } = useWallet();
+  const { isConnected, balance, connect } = useWallet();
   const userPosition = MOCK_PORTFOLIO.positions.find((p) => p.vaultId === id);
 
   const [depositToken, setDepositToken] = useState("");
@@ -123,9 +137,20 @@ export function VaultDetail() {
           <p className="text-[11px] font-bold tracking-[0.5px] text-primary uppercase mb-2">
             // VAULT DETAIL
           </p>
-          <h1 className="text-[42px] font-bold tracking-[-1px] text-foreground font-display leading-tight mb-3">
+          <h1 className="text-[42px] font-bold tracking-[-1px] text-foreground font-display leading-tight mb-2">
             {vault.name}
           </h1>
+          {vault.addresses["hedera-testnet"] && (
+            <a
+              href={`${EXPLORER_URLS["hedera-testnet"]}${vault.addresses["hedera-testnet"]}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground hover:text-primary transition-colors mb-3"
+            >
+              {vault.addresses["hedera-testnet"]}
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
           <div className="flex items-center gap-2">
             <span className="text-[9px] font-bold tracking-[0.5px] text-muted-foreground border border-border px-2 py-0.5">
               {TYPE_LABELS[vault.strategy.type]}
@@ -139,7 +164,7 @@ export function VaultDetail() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
         <StatCard label="APY" value={formatApy(vault.apy)} />
         <StatCard label="TOTAL_VALUE_LOCKED" value={formatUsd(vault.tvl)} />
-        <StatCard label="DEPOSITORS" value={formatNumber(vault.totalDepositors)} />
+        <StatCard label="PRICE_PER_SHARE" value={`${vault.sharePrice.toFixed(2)} USDC`} />
         <StatCard label="INCEPTION" value={formatDate(vault.inception)} />
       </div>
 
@@ -159,6 +184,37 @@ export function VaultDetail() {
               {vault.strategy.description}
             </p>
           </div>
+
+          {/* Contract Addresses */}
+          {Object.keys(vault.addresses).length > 0 && (
+            <div className="border border-border bg-card p-6">
+              <h2 className="text-[11px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-4">
+                // CONTRACT ADDRESSES
+              </h2>
+              <div className="space-y-2">
+                {Object.entries(vault.addresses).map(([network, address]) => (
+                  <div key={network} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
+                    <span className="text-[11px] text-muted-foreground tracking-[0.5px] uppercase">
+                      {NETWORK_LABELS[network] ?? network}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-mono text-foreground">
+                        {address!.slice(0, 6)}...{address!.slice(-4)}
+                      </span>
+                      <a
+                        href={`${EXPLORER_URLS[network] ?? "#"}${address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Token Allocation */}
           <div className="border border-border bg-card p-6">
@@ -328,6 +384,13 @@ export function VaultDetail() {
                 </TabsList>
 
                 <TabsContent value="deposit" className="space-y-4 mt-4">
+                  {/* Wallet balance */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-secondary border border-border">
+                    <span className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase">WALLET</span>
+                    <span className="text-[11px] font-semibold text-foreground font-mono">
+                      {balance.toFixed(2)} HBAR
+                    </span>
+                  </div>
                   <div>
                     <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
                       TOKEN
@@ -460,6 +523,7 @@ export function VaultDetail() {
                 </TabsContent>
               </Tabs>
             )}
+
           </div>
         </div>
       </div>
