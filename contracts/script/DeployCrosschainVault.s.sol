@@ -3,10 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {Vault} from "../src/Vault.sol";
+import {CrosschainVault} from "../src/CrosschainVault.sol";
 
-contract DeployVault is Script {
-    Vault public vault;
+contract DeployCrosschainVault is Script {
+    CrosschainVault public vault;
 
     function setUp() public {}
 
@@ -20,9 +20,9 @@ contract DeployVault is Script {
         vm.startBroadcast();
 
         // Deploy at predictable address
-        vault = new Vault{salt: bytes32(0)}(depositToken, oracle, owner, name, symbol);
+        vault = new CrosschainVault{salt: bytes32(0)}(depositToken, oracle, owner, name, symbol);
 
-        console.log("Vault deployed at", address(vault));
+        console.log("CrosschainVault deployed at", address(vault));
 
         vm.stopBroadcast();
     }
