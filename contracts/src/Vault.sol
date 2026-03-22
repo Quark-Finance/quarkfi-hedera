@@ -90,4 +90,7 @@ contract Vault is Ownable, ERC20 {
 
         emit Execute(to, value, data);
     }
+
+    // Allow the contract to receive native tokens
+    receive() external payable {}
 }

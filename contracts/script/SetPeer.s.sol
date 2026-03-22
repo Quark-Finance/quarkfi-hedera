@@ -13,6 +13,9 @@ contract SetPeer is Script {
         address peerAddress = vm.envAddress("PEER_ADDRESS");
         uint32 eid = uint32(vm.envUint("EID"));
 
+        console.log("Setting peer for EID", eid, "to", peerAddress);
+        console.log("OApp address", oappAddress);
+
         vm.startBroadcast();
 
         OApp(oappAddress).setPeer(eid, bytes32(uint256(uint160(peerAddress))));
