@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWallet } from "@/hooks/useWallet";
-import { MOCK_SUGGESTIONS, type ChatMessage } from "@/data/chat";
+import { MOCK_SUGGESTIONS, type ChatMessage, type ToolCallInfo } from "@/data/chat";
 import { sendMessage, getAgentStatus } from "@/lib/api";
 import {
   Send,
@@ -16,8 +16,7 @@ import {
   WifiOff,
 } from "lucide-react";
 
-function ToolCallBadge({ toolCall }: { toolCall: ChatMessage["toolCall"] }) {
-  if (!toolCall) return null;
+function ToolCallBadge({ toolCall }: { toolCall: ToolCallInfo }) {
 
   const statusConfig = {
     success: { icon: CheckCircle, className: "text-primary border-primary/40 bg-primary/10" },
@@ -69,7 +68,9 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             );
           })}
         </div>
-        {message.toolCall && <ToolCallBadge toolCall={message.toolCall} />}
+        {(message.toolCalls ?? (message.toolCall ? [message.toolCall] : [])).map((tc, i) => (
+          <ToolCallBadge key={i} toolCall={tc} />
+        ))}
         <p className="text-[9px] text-muted-foreground tracking-[0.5px] uppercase">
           {new Date(message.timestamp).toLocaleTimeString("en-US", {
             hour: "2-digit",
@@ -82,7 +83,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 }
 
 export function QuarkAI() {
-  const { isConnected, connect } = useWallet();
+  const { isConnected, address, connect } = useWallet();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -121,43 +122,46 @@ export function QuarkAI() {
       setIsTyping(true);
 
       try {
-        const result = await sendMessage(content, threadId);
+        const result = await sendMessage(content, threadId, address);
 
-        const toolCall = result.toolCalls?.[0];
+        const toolCalls: ToolCallInfo[] = (result.toolCalls ?? []).map((tc) => ({
+          name: tc.name,
+          status: result.error ? "error" as const : "success" as const,
+          result: tc.humanMessage,
+        }));
+
         const agentMsg: ChatMessage = {
           id: `msg-${Date.now()}-agent`,
           role: "agent",
           content: result.content,
           timestamp: new Date().toISOString(),
-          toolCall: toolCall
-            ? {
-                name: toolCall.name,
-                status: result.error ? "error" : "success",
-                result: toolCall.humanMessage,
-              }
-            : undefined,
+          toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         };
 
         setMessages((prev) => [...prev, agentMsg]);
-      } catch {
+      } catch (err) {
         const errorMsg: ChatMessage = {
           id: `msg-${Date.now()}-error`,
           role: "agent",
           content:
-            "Failed to reach the Quark AI server. Make sure the server is running on port 3001.",
+            err instanceof Error && !err.message.includes("fetch")
+              ? err.message
+              : "Failed to reach the Quark AI server. Make sure the server is running on port 3001.",
           timestamp: new Date().toISOString(),
-          toolCall: {
-            name: "connection_error",
-            status: "error",
-            result: "server unreachable",
-          },
+          toolCalls: [
+            {
+              name: "connection_error",
+              status: "error",
+              result: "server unreachable",
+            },
+          ],
         };
         setMessages((prev) => [...prev, errorMsg]);
       } finally {
         setIsTyping(false);
       }
     },
-    [input, isTyping, threadId]
+    [input, isTyping, threadId, address]
   );
 
   if (!isConnected) {
