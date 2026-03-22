@@ -7,12 +7,14 @@ import {
   Wallet,
   LogOut,
   Bot,
+  FlaskConical,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/vaults", label: "VAULTS", icon: LayoutDashboard },
   { to: "/portfolio", label: "PORTFOLIO", icon: Wallet },
   { to: "/ai", label: "QUARK AI", icon: Bot },
+  { to: "/dev", label: "DEV TOOLS", icon: FlaskConical },
 ];
 
 export function Sidebar() {

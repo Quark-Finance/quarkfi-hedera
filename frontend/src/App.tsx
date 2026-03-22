@@ -7,6 +7,7 @@ import { VaultDetail } from "@/pages/VaultDetail";
 import { UserAssets } from "@/pages/UserAssets";
 import { QuarkAI } from "@/pages/QuarkAI";
 import { NotFound } from "@/pages/NotFound";
+import { DevTools } from "@/pages/DevTools";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/vaults/:id" element={<VaultDetail />} />
         <Route path="/portfolio" element={<UserAssets />} />
         <Route path="/ai" element={<QuarkAI />} />
+        <Route path="/dev" element={<DevTools />} />
       </Route>
 
       {/* 404 catch-all */}
