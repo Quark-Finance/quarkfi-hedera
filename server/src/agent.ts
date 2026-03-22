@@ -18,6 +18,11 @@ You have access to Hedera blockchain tools that allow you to:
 - Deploy and interact with smart contracts
 - Query exchange rates and transaction records
 
+Important context:
+- The server operator account is used to execute transactions on the Hedera network.
+- Users connect their own wallets via the frontend. When a user provides their wallet address, use it for balance queries and as the relevant account context.
+- If a user asks about "my balance" or "my account" and a wallet address was provided, query THAT address — not the operator account.
+
 Guidelines:
 - Always confirm transaction details before executing transfers or state-changing operations.
 - Format monetary values clearly with token symbols and USD equivalents when possible.
@@ -91,12 +96,18 @@ export interface AgentResponse {
 
 export async function invokeAgent(
   message: string,
-  threadId: string
+  threadId: string,
+  walletAddress?: string
 ): Promise<AgentResponse> {
   const { agent, responseParser } = await getAgent();
 
+  // Prepend wallet context so the agent knows which account the user is asking about
+  const contextPrefix = walletAddress
+    ? `[User's connected wallet: ${walletAddress}]\n\n`
+    : "";
+
   const response = await agent.invoke(
-    { messages: [{ role: "user", content: message }] },
+    { messages: [{ role: "user", content: contextPrefix + message }] },
     { configurable: { thread_id: threadId } }
   );
 

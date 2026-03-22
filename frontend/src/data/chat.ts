@@ -1,22 +1,24 @@
+export interface ToolCallInfo {
+  name: string;
+  status: "success" | "error" | "pending";
+  result?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "agent";
   content: string;
   timestamp: string;
-  toolCall?: {
-    name: string;
-    status: "success" | "error" | "pending";
-    result?: string;
-  };
+  toolCall?: ToolCallInfo;
+  toolCalls?: ToolCallInfo[];
 }
 
 export const MOCK_SUGGESTIONS = [
   "What is my HBAR balance?",
-  "Send 100 HBAR to 0.0.4821533",
   "What tokens do I hold?",
-  "Create a new HTS fungible token",
   "What's the current HBAR exchange rate?",
-  "Show my vault positions",
+  "Create a new HTS fungible token",
+  "Send 10 HBAR to 0.0.4821533",
 ];
 
 export const MOCK_CONVERSATION: ChatMessage[] = [

@@ -30,7 +30,11 @@ app.get("/agent/status", async (c) => {
 
 // Chat endpoint
 app.post("/agent/chat", async (c) => {
-  const body = await c.req.json<{ message: string; threadId: string }>();
+  const body = await c.req.json<{
+    message: string;
+    threadId: string;
+    walletAddress?: string;
+  }>();
 
   if (!body.message?.trim()) {
     return c.json({ error: "message is required" }, 400);
@@ -39,7 +43,7 @@ app.post("/agent/chat", async (c) => {
   const threadId = body.threadId || "default";
 
   try {
-    const result = await invokeAgent(body.message, threadId);
+    const result = await invokeAgent(body.message, threadId, body.walletAddress);
     return c.json(result);
   } catch (err) {
     console.error("[AGENT ERROR]", err);
