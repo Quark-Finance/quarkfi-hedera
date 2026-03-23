@@ -30,7 +30,7 @@ export const VAULTS: Vault[] = [
     tvl: 2_500_000,
     totalDepositors: 34,
     sharePrice: 1.12,
-    inception: "2025-11-01",
+    inception: "2026-03-20",
   },
   {
     id: "hedera-btc",
@@ -59,7 +59,7 @@ export const VAULTS: Vault[] = [
     tvl: 1_805_000,
     totalDepositors: 21,
     sharePrice: 1.34,
-    inception: "2025-12-15",
+    inception: "2026-03-20",
   },
   {
     id: "crosschain-high-yield-defi",
@@ -90,7 +90,7 @@ export const VAULTS: Vault[] = [
     tvl: 6_250_000,
     totalDepositors: 89,
     sharePrice: 1.52,
-    inception: "2025-10-01",
+    inception: "2026-03-21",
   },
   {
     id: "crosschain-high-yield-rwa",
@@ -121,6 +121,6 @@ export const VAULTS: Vault[] = [
     tvl: 5_000_000,
     totalDepositors: 67,
     sharePrice: 1.24,
-    inception: "2025-10-15",
+    inception: "2026-03-22",
   },
 ];

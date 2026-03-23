@@ -80,6 +80,13 @@ const vaultAbi = [
     inputs: [{ name: "shares", type: "uint256" }],
     outputs: [],
   },
+  {
+    name: "pricePerShare",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
 
 export function VaultDetail() {
@@ -113,6 +120,16 @@ export function VaultDetail() {
   const shareBalance = rawShareBalance
     ? Number(formatUnits(rawShareBalance, 18))
     : 0;
+
+  const { data: rawPricePerShare } = useReadContract({
+    address: vaultAddress,
+    abi: vaultAbi,
+    functionName: "pricePerShare",
+    chainId: hederaTestnet.id,
+    query: { enabled: !!vaultAddress },
+  });
+  const pricePerShare = rawPricePerShare ? Number(rawPricePerShare) / 1e6 : 1;
+  const apy = (pricePerShare - 1) * 100;
 
   const writeContract = useWriteContract();
 
@@ -260,9 +277,9 @@ export function VaultDetail() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
-        <StatCard label="APY" value={formatApy(vault.apy)} />
+        <StatCard label="APY" value={formatApy(apy)} />
         <StatCard label="TOTAL_VALUE_LOCKED" value={formatUsd(vault.tvl)} />
-        <StatCard label="PRICE_PER_SHARE" value={`${vault.sharePrice.toFixed(2)} USDC`} />
+        <StatCard label="PRICE_PER_SHARE" value={`${pricePerShare.toFixed(4)} USDC`} />
         <StatCard label="INCEPTION" value={formatDate(vault.inception)} />
       </div>
 
