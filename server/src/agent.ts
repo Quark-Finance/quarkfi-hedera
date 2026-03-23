@@ -7,6 +7,7 @@ import {
 import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatOpenAI } from "@langchain/openai";
 
 const SYSTEM_PROMPT = `You are Quark AI, an institutional-grade DeFi assistant powered by the Hedera network.
 
@@ -41,12 +42,13 @@ export async function getAgent() {
   const accountId = process.env.ACCOUNT_ID;
   const privateKey = process.env.PRIVATE_KEY;
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+  const openaiApiKey = process.env.OPENAI_API_KEY;
 
   if (!accountId || !privateKey) {
     throw new Error("ACCOUNT_ID and PRIVATE_KEY environment variables are required");
   }
-  if (!anthropicApiKey) {
-    throw new Error("ANTHROPIC_API_KEY environment variable is required");
+  if (!anthropicApiKey && !openaiApiKey) {
+    throw new Error("Either ANTHROPIC_API_KEY or OPENAI_API_KEY must be set");
   }
 
   const client = Client.forTestnet().setOperator(
@@ -65,10 +67,17 @@ export async function getAgent() {
     },
   });
 
-  const llm = new ChatAnthropic({
-    model: "claude-sonnet-4-5-20250929",
-    apiKey: anthropicApiKey,
-  });
+  const llm = openaiApiKey
+    ? new ChatOpenAI({
+        model: "gpt-4o",
+        apiKey: openaiApiKey,
+      })
+    : new ChatAnthropic({
+        model: "claude-sonnet-4-5-20250929",
+        apiKey: anthropicApiKey,
+      });
+
+  const llmProvider = openaiApiKey ? "OpenAI (gpt-4o)" : "Anthropic (claude-sonnet-4-5)";
 
   const tools = toolkit.getTools();
   responseParser = new ResponseParserService(tools);
@@ -80,7 +89,7 @@ export async function getAgent() {
     checkpointer: new MemorySaver(),
   });
 
-  console.log(`[AGENT] Initialized with ${tools.length} tools on Hedera testnet`);
+  console.log(`[AGENT] Initialized with ${tools.length} tools on Hedera testnet (LLM: ${llmProvider})`);
 
   return { agent, toolkit, responseParser };
 }
