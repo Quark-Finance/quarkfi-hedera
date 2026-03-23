@@ -393,8 +393,8 @@ export function VaultDetail() {
                     <p className="text-[15px] font-bold font-display tracking-[-0.5px] text-foreground">{formatUsd(userPosition.currentValue)}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">COST BASIS</p>
-                    <p className="text-[15px] font-bold font-display tracking-[-0.5px] text-foreground">{formatUsd(userPosition.depositedAmount)}</p>
+                    <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">SHARES</p>
+                    <p className="text-[15px] font-bold font-display tracking-[-0.5px] text-foreground">{formatNumber(userPosition.currentValue / vault.sharePrice)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase mb-0.5">P&amp;L</p>
