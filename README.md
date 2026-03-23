@@ -105,4 +105,69 @@ bun run dev           # http://localhost:3001
 
 ## Contracts
 
-...
+Smart contracts are written in Solidity and compiled with Foundry. All deployments are on testnet.
+
+### Contract Types
+
+| Contract | Description |
+|----------|-------------|
+| `Vault.sol` | ERC-4626 single-chain vault — accepts USDC deposits, mints shares, tracks price per share |
+| `CrosschainVault.sol` | LayerZero-enabled vault — receives crosschain USDC deposits from Sepolia networks |
+| `CrosschainToken.sol` | LayerZero OFT — bridgeable USDC token deployed on each Sepolia network |
+| `Token.sol` | Standard ERC-20 — testnet USDC on Hedera, mintable for testing |
+
+---
+
+### USDC Token
+
+Quark-deployed testnet USDC. Used as the deposit token for all vaults. `Token.sol` on Hedera, `CrosschainToken.sol` (OFT) on EVM testnets.
+
+| Network | Address | Explorer |
+|---------|---------|---------|
+| Hedera Testnet | `0x0944830916CECb637613c9Fd0e8F6C21ccFFB4eF` | [HashScan](https://hashscan.io/testnet/address/0x0944830916CECb637613c9Fd0e8F6C21ccFFB4eF) |
+| Ethereum Sepolia | `0xC79d193E7cfB108cFd7f8F781F0A95F56EfdcB68` | [Etherscan](https://sepolia.etherscan.io/address/0xC79d193E7cfB108cFd7f8F781F0A95F56EfdcB68) |
+| Arbitrum Sepolia | `0x30EA5467D7A1d6cFCc8677Ac7a4882d96DA7320D` | [Arbiscan](https://sepolia.arbiscan.io/address/0x30EA5467D7A1d6cFCc8677Ac7a4882d96DA7320D) |
+| Base Sepolia | `0x50972CE2410bC1f9533d3b6d8e710917ce55769e` | [Basescan](https://sepolia.basescan.org/address/0x50972CE2410bC1f9533d3b6d8e710917ce55769e) |
+
+---
+
+### Vaults
+
+#### Quark Hedera High Yield RWA
+> Allocates to tokenized real-world assets on Hedera including treasury bills, commercial paper, and institutional lending pools. `Vault.sol`.
+
+| Network | Address | Explorer |
+|---------|---------|---------|
+| Hedera Testnet | `0x62169eFC8F35DC91af254fe5B7e70cbe365913CD` | [HashScan](https://hashscan.io/testnet/address/0x62169eFC8F35DC91af254fe5B7e70cbe365913CD) |
+
+---
+
+#### Quark Hedera BTC Vault
+> Bitcoin-focused vault accumulating BTC exposure through wrapped BTC positions on Hedera, supplemented by HBAR yield. `Vault.sol`.
+
+| Network | Address | Explorer |
+|---------|---------|---------|
+| Hedera Testnet | `0xf60D71401f9e660236903aC0BaE6C43337d47871` | [HashScan](https://hashscan.io/testnet/address/0xf60D71401f9e660236903aC0BaE6C43337d47871) |
+
+---
+
+#### Quark Crosschain High Yield DeFi
+> Pursues maximum DeFi yields across Hedera, Ethereum, and Base through concentrated liquidity and delta-neutral strategies. `CrosschainVault.sol` + LayerZero OFT bridging.
+
+| Network | Address | Explorer |
+|---------|---------|---------|
+| Hedera Testnet | `0x8d325AD0Ca1fAdA242319B46D20c82d4EC891a85` | [HashScan](https://hashscan.io/testnet/address/0x8d325AD0Ca1fAdA242319B46D20c82d4EC891a85) |
+| Ethereum Sepolia | `0x318919548Dd25b606A56A8F9684776c212462C53` | [Etherscan](https://sepolia.etherscan.io/address/0x318919548Dd25b606A56A8F9684776c212462C53) |
+| Base Sepolia | `0x701a23D3DEC9f560681D86F9407C24879C429a06` | [Basescan](https://sepolia.basescan.org/address/0x701a23D3DEC9f560681D86F9407C24879C429a06) |
+
+---
+
+#### Quark Crosschain High Yield RWA
+> Combines tokenized real-world assets across multiple chains with stablecoin yield optimization. `CrosschainVault.sol` + LayerZero OFT bridging.
+
+| Network | Address | Explorer |
+|---------|---------|---------|
+| Hedera Testnet | `0xba8e52853e786dba35067937F142f73edEEb2ae6` | [HashScan](https://hashscan.io/testnet/address/0xba8e52853e786dba35067937F142f73edEEb2ae6) |
+| Ethereum Sepolia | `0x791b6A0225B10285bb1C21356aa907F401EEE485` | [Etherscan](https://sepolia.etherscan.io/address/0x791b6A0225B10285bb1C21356aa907F401EEE485) |
+| Base Sepolia | `0x2D5AC2C334d5ff0d395E60f207b4e0e888A98C44` | [Basescan](https://sepolia.basescan.org/address/0x2D5AC2C334d5ff0d395E60f207b4e0e888A98C44) |
+
