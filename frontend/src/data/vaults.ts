@@ -12,6 +12,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.HBAR, allocation: 30, quantity: 2_678_571 },
       { token: TOKENS.HBARX, allocation: 20, quantity: 1_612_903 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "Hedera RWA Yield",
       description:
@@ -29,7 +30,7 @@ export const VAULTS: Vault[] = [
     tvl: 2_500_000,
     totalDepositors: 34,
     sharePrice: 1.12,
-    inception: "2025-11-01",
+    inception: "2026-03-20",
   },
   {
     id: "hedera-btc",
@@ -40,6 +41,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.HBAR, allocation: 25, quantity: 1_607_143 },
       { token: TOKENS.USDC_HEDERA, allocation: 15, quantity: 270_750 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "BTC Accumulation",
       description:
@@ -57,7 +59,7 @@ export const VAULTS: Vault[] = [
     tvl: 1_805_000,
     totalDepositors: 21,
     sharePrice: 1.34,
-    inception: "2025-12-15",
+    inception: "2026-03-20",
   },
   {
     id: "crosschain-high-yield-defi",
@@ -70,6 +72,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.USDC_ETH, allocation: 15, quantity: 937_500 },
       { token: TOKENS.USDC_BASE, allocation: 15, quantity: 937_500 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "Crosschain DeFi Alpha",
       description:
@@ -87,7 +90,7 @@ export const VAULTS: Vault[] = [
     tvl: 6_250_000,
     totalDepositors: 89,
     sharePrice: 1.52,
-    inception: "2025-10-01",
+    inception: "2026-03-21",
   },
   {
     id: "crosschain-high-yield-rwa",
@@ -100,6 +103,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.HBAR, allocation: 15, quantity: 2_678_571 },
       { token: TOKENS.ETH, allocation: 10, quantity: 146 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "Crosschain RWA Yield",
       description:
@@ -117,6 +121,6 @@ export const VAULTS: Vault[] = [
     tvl: 5_000_000,
     totalDepositors: 67,
     sharePrice: 1.24,
-    inception: "2025-10-15",
+    inception: "2026-03-22",
   },
 ];

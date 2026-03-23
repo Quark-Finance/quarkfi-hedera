@@ -22,8 +22,11 @@ import { StatCard } from "@/components/StatCard";
 import { TokenIcon } from "@/components/TokenIcon";
 import { RiskIndicator } from "@/components/RiskIndicator";
 import { FeeBreakdown } from "@/components/FeeBreakdown";
+import { useReadContract, useWriteContract } from "wagmi";
+import { erc20Abi, parseUnits, formatUnits } from "viem";
 import { useVault } from "@/hooks/useVaults";
 import { useWallet } from "@/hooks/useWallet";
+import { hederaTestnet } from "@/config/wagmi";
 import { MOCK_PORTFOLIO } from "@/data/user";
 import { TOKENS } from "@/data/tokens";
 import {
@@ -37,6 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { ArrowLeft, Loader2, SearchX, ExternalLink } from "lucide-react";
+import deployments from "@/data/deployments.json";
 
 const TYPE_LABELS: Record<string, string> = {
   "hedera-native": "HEDERA NATIVE",
@@ -58,24 +62,87 @@ const EXPLORER_URLS: Record<string, string> = {
   "arbitrum-sepolia": "https://sepolia.arbiscan.io/address/",
 };
 
+const vaultAbi = [
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "amount", type: "uint256" },
+      { name: "to", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    name: "withdraw",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "shares", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    name: "pricePerShare",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
 export function VaultDetail() {
   const { id } = useParams<{ id: string }>();
   const vault = useVault(id!);
-  const { isConnected, balance, connect } = useWallet();
+  const { isConnected, address, connect } = useWallet();
+
+  const usdcAddress = deployments.usdc["hedera-testnet"] as `0x${string}`;
+  const vaultAddress = vault?.addresses["hedera-testnet"] as `0x${string}` | undefined;
+
+  const { data: rawDepositBalance, refetch: refetchUsdcBalance } = useReadContract({
+    address: usdcAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    chainId: hederaTestnet.id,
+    query: { enabled: !!address },
+  });
+  const depositTokenBalance = rawDepositBalance
+    ? Number(formatUnits(rawDepositBalance, 18))
+    : 0;
+
+  const { data: rawShareBalance, refetch: refetchShareBalance } = useReadContract({
+    address: vaultAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    chainId: hederaTestnet.id,
+    query: { enabled: !!address && !!vaultAddress },
+  });
+  const shareBalance = rawShareBalance
+    ? Number(formatUnits(rawShareBalance, 18))
+    : 0;
+
+  const { data: rawPricePerShare } = useReadContract({
+    address: vaultAddress,
+    abi: vaultAbi,
+    functionName: "pricePerShare",
+    chainId: hederaTestnet.id,
+    query: { enabled: !!vaultAddress },
+  });
+  const pricePerShare = rawPricePerShare ? Number(rawPricePerShare) / 1e6 : 1;
+  const apy = (pricePerShare - 1) * 100;
+
+  const writeContract = useWriteContract();
+
   const userPosition = MOCK_PORTFOLIO.positions.find((p) => p.vaultId === id);
 
   const [depositToken, setDepositToken] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
-  const [withdrawToken, setWithdrawToken] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
 
-  const selectedWithdrawHolding = userPosition?.holdings.find(
-    (h) => `${h.tokenSymbol}:${h.chain}` === withdrawToken
-  );
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"deposit" | "withdraw">("deposit");
-  const [confirmAmount, setConfirmAmount] = useState("");
+  const [confirmTxHash, setConfirmTxHash] = useState("");
 
   if (!vault) {
     return (
@@ -104,20 +171,68 @@ export function VaultDetail() {
     );
   }
 
-  async function handleSubmit(action: "deposit" | "withdraw") {
-    const amount = action === "deposit" ? depositAmount : withdrawAmount;
-    if (!amount || parseFloat(amount) <= 0) return;
+  async function handleDeposit() {
+    if (!depositAmount || parseFloat(depositAmount) <= 0 || !address || !vaultAddress) return;
 
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setIsLoading(false);
+    try {
+      const parsedAmount = parseUnits(depositAmount, 18);
 
-    setConfirmAction(action);
-    setConfirmAmount(amount);
-    setShowConfirm(true);
+      await writeContract.mutateAsync({
+        address: usdcAddress,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [vaultAddress, parsedAmount],
+        chainId: hederaTestnet.id,
+      });
 
-    if (action === "deposit") setDepositAmount("");
-    else setWithdrawAmount("");
+      const tx = await writeContract.mutateAsync({
+        address: vaultAddress,
+        abi: vaultAbi,
+        functionName: "deposit",
+        args: [parsedAmount, address],
+        chainId: hederaTestnet.id,
+      });
+
+      setConfirmAction("deposit");
+      setConfirmTxHash(tx);
+      setShowConfirm(true);
+      setDepositAmount("");
+      refetchUsdcBalance();
+      refetchShareBalance();
+    } catch (e) {
+      console.error("Deposit failed:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleWithdraw() {
+    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0 || !vaultAddress) return;
+
+    setIsLoading(true);
+    try {
+      const parsedShares = parseUnits(withdrawAmount, 18);
+
+      const tx = await writeContract.mutateAsync({
+        address: vaultAddress,
+        abi: vaultAbi,
+        functionName: "withdraw",
+        args: [parsedShares],
+        chainId: hederaTestnet.id,
+      });
+
+      setConfirmAction("withdraw");
+      setConfirmTxHash(tx);
+      setShowConfirm(true);
+      setWithdrawAmount("");
+      refetchUsdcBalance();
+      refetchShareBalance();
+    } catch (e) {
+      console.error("Withdraw failed:", e);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -162,9 +277,9 @@ export function VaultDetail() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
-        <StatCard label="APY" value={formatApy(vault.apy)} />
+        <StatCard label="APY" value={formatApy(apy)} />
         <StatCard label="TOTAL_VALUE_LOCKED" value={formatUsd(vault.tvl)} />
-        <StatCard label="PRICE_PER_SHARE" value={`${vault.sharePrice.toFixed(2)} USDC`} />
+        <StatCard label="PRICE_PER_SHARE" value={`${pricePerShare.toFixed(4)} USDC`} />
         <StatCard label="INCEPTION" value={formatDate(vault.inception)} />
       </div>
 
@@ -388,7 +503,7 @@ export function VaultDetail() {
                   <div className="flex items-center justify-between px-3 py-2 bg-secondary border border-border">
                     <span className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase">WALLET</span>
                     <span className="text-[11px] font-semibold text-foreground font-mono">
-                      {balance.toFixed(2)} HBAR
+                      {depositTokenBalance.toFixed(2)} {vault.depositToken.symbol}
                     </span>
                   </div>
                   <div>
@@ -400,11 +515,14 @@ export function VaultDetail() {
                         <SelectValue placeholder="SELECT TOKEN" />
                       </SelectTrigger>
                       <SelectContent>
-                        {vault.tokens.map((vt) => (
+
+                        <SelectItem key={vault.depositToken.symbol + vault.depositToken.chain} value={vault.depositToken.symbol}>{vault.depositToken.symbol} — {vault.depositToken.name}</SelectItem>
+
+                        {/* {vault.tokens.map((vt) => (
                           <SelectItem key={vt.token.symbol + vt.token.chain} value={vt.token.symbol}>
                             {vt.token.symbol} — {vt.token.name}
                           </SelectItem>
-                        ))}
+                        ))} */}
                       </SelectContent>
                     </Select>
                   </div>
@@ -424,56 +542,25 @@ export function VaultDetail() {
                   <Button
                     className="w-full text-[11px] font-bold tracking-[0.5px] uppercase"
                     disabled={isLoading || !depositAmount || !depositToken}
-                    onClick={() => handleSubmit("deposit")}
+                    onClick={handleDeposit}
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "DEPOSIT"}
                   </Button>
                 </TabsContent>
 
                 <TabsContent value="withdraw" className="space-y-4 mt-4">
-                  {/* Token selector */}
-                  <div>
-                    <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
-                      TOKEN
-                    </label>
-                    <Select
-                      value={withdrawToken}
-                      onValueChange={(v) => {
-                        setWithdrawToken(v ?? "");
-                        setWithdrawAmount("");
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="SELECT TOKEN" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(userPosition?.holdings ?? vault.tokens.map((vt) => ({
-                          tokenSymbol: vt.token.symbol,
-                          chain: vt.token.chain,
-                          quantity: 0,
-                          valueUsd: 0,
-                        }))).map((h) => (
-                          <SelectItem key={`${h.tokenSymbol}:${h.chain}`} value={`${h.tokenSymbol}:${h.chain}`}>
-                            {h.tokenSymbol}{h.chain !== "hedera" ? ` (${h.chain})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Share balance */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-secondary border border-border">
+                    <span className="text-[10px] font-bold tracking-[0.5px] text-muted-foreground uppercase">SHARES</span>
+                    <span className="text-[11px] font-semibold text-foreground font-mono">
+                      {shareBalance.toFixed(4)}
+                    </span>
                   </div>
 
-                  {/* Balance + amount */}
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase">
-                        AMOUNT
-                      </label>
-                      {selectedWithdrawHolding && (
-                        <span className="text-[11px] text-muted-foreground tracking-[0.3px]">
-                          BAL: <span className="text-foreground font-semibold">{formatNumber(selectedWithdrawHolding.quantity)}</span> {selectedWithdrawHolding.tokenSymbol}
-                          <span className="text-muted-foreground ml-1">({formatUsd(selectedWithdrawHolding.valueUsd)})</span>
-                        </span>
-                      )}
-                    </div>
+                    <label className="text-[11px] font-medium tracking-[0.5px] text-muted-foreground uppercase mb-1.5 block">
+                      SHARES TO WITHDRAW
+                    </label>
                     <Input
                       type="number"
                       placeholder="0.00"
@@ -481,8 +568,7 @@ export function VaultDetail() {
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                       min="0"
                     />
-                    {/* Quick % buttons */}
-                    {selectedWithdrawHolding && (
+                    {shareBalance > 0 && (
                       <div className="grid grid-cols-4 gap-1 mt-2">
                         {[25, 50, 75, 100].map((pct) => (
                           <button
@@ -490,7 +576,7 @@ export function VaultDetail() {
                             type="button"
                             onClick={() =>
                               setWithdrawAmount(
-                                ((selectedWithdrawHolding.quantity * pct) / 100).toFixed(4)
+                                ((shareBalance * pct) / 100).toFixed(4)
                               )
                             }
                             className="py-1 border border-border bg-secondary text-[10px] font-bold tracking-[0.5px] text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors uppercase"
@@ -500,23 +586,14 @@ export function VaultDetail() {
                         ))}
                       </div>
                     )}
-                    {/* Estimated USD value */}
-                    {withdrawAmount && selectedWithdrawHolding && (
-                      <p className="text-[11px] text-muted-foreground mt-1.5 tracking-[0.3px]">
-                        ≈ {formatUsd(
-                          (parseFloat(withdrawAmount) / selectedWithdrawHolding.quantity) *
-                          selectedWithdrawHolding.valueUsd
-                        )} USD
-                      </p>
-                    )}
                   </div>
 
                   <Separator />
                   <Button
                     variant="outline"
                     className="w-full text-[11px] font-bold tracking-[0.5px] uppercase"
-                    disabled={isLoading || !withdrawAmount || !withdrawToken}
-                    onClick={() => handleSubmit("withdraw")}
+                    disabled={isLoading || !withdrawAmount}
+                    onClick={handleWithdraw}
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "WITHDRAW"}
                   </Button>
@@ -536,11 +613,11 @@ export function VaultDetail() {
               [TX SUBMITTED]
             </DialogTitle>
             <DialogDescription className="text-[13px] text-muted-foreground">
-              Your {confirmAction.toUpperCase()} of ${confirmAmount} has been submitted to the network.
+              Your {confirmAction.toUpperCase()} has been submitted to the network.
             </DialogDescription>
           </DialogHeader>
           <div className="bg-secondary border border-border p-3 text-[11px] text-muted-foreground break-all">
-            TX_HASH: 0x{Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")}
+            TX_HASH: {confirmTxHash}
           </div>
           <Button onClick={() => setShowConfirm(false)} className="w-full text-[11px] font-bold tracking-[0.5px] uppercase">
             DONE
