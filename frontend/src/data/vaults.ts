@@ -12,6 +12,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.HBAR, allocation: 30, quantity: 2_678_571 },
       { token: TOKENS.HBARX, allocation: 20, quantity: 1_612_903 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "Hedera RWA Yield",
       description:
@@ -40,6 +41,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.HBAR, allocation: 25, quantity: 1_607_143 },
       { token: TOKENS.USDC_HEDERA, allocation: 15, quantity: 270_750 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "BTC Accumulation",
       description:
@@ -70,6 +72,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.USDC_ETH, allocation: 15, quantity: 937_500 },
       { token: TOKENS.USDC_BASE, allocation: 15, quantity: 937_500 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "Crosschain DeFi Alpha",
       description:
@@ -100,6 +103,7 @@ export const VAULTS: Vault[] = [
       { token: TOKENS.HBAR, allocation: 15, quantity: 2_678_571 },
       { token: TOKENS.ETH, allocation: 10, quantity: 146 },
     ],
+    depositToken: TOKENS.USDC_HEDERA,
     strategy: {
       name: "Crosschain RWA Yield",
       description:

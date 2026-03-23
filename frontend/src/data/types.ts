@@ -39,6 +39,7 @@ export interface Vault {
   name: string;
   addresses: Partial<Record<NetworkId, string>>;
   tokens: VaultToken[];
+  depositToken: Token;
   strategy: VaultStrategy;
   fees: VaultFees;
   apy: number;
